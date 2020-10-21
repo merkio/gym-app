@@ -29,7 +29,7 @@ func (r Repository) GetExercises() []Exercise {
 		appLog.Error("Can't get exercises from db.\n%s", result.Error)
 	}
 
-	appLog.Infof("Found %s amount of exercises", result.RowsAffected)
+	appLog.Infof("Found %d amount of exercises", result.RowsAffected)
 	return exercises
 }
 
