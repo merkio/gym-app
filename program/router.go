@@ -55,7 +55,7 @@ func NewSubRouter(r *mux.Router) *mux.Router {
 	for _, route := range routes {
 		var handler http.Handler
 		handler = route.HandlerFunc
-		handler = logger.Logger(handler, route.Name)
+		handler = logger.RequestLogger(handler, route.Name)
 		router.
 			Methods(route.Method).
 			Path(route.Pattern).

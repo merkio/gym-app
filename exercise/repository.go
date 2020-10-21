@@ -1,64 +1,68 @@
 package exercise
 
 import (
-	"fmt"
-	"log"
-	"time"
+	dbConnector "gym-app/common/db"
+	loggerWrap "gym-app/common/logger"
 
-	"gopkg.in/mgo.v2"
-	"gopkg.in/mgo.v2/bson"
+	"gorm.io/gorm"
 )
 
 //Repository ...
 type Repository struct{}
 
-// SERVER the DB server
-const SERVER = "localhost:27017"
+var db *gorm.DB
+var appLog *loggerWrap.Logger
 
-// DB the name of the DB instance
-const DB = "programs"
-
-// DOCNAME the name of the document
-const DOCNAME = "exercises"
-
-// GetExercises returns the list of Exercises
-func (r Repository) GetExercises() Exercises {
-	session, err := mgo.Dial(SERVER)
-	if err != nil {
-		fmt.Println("Failed to establish connection to Mongo server:", err)
-	}
-	defer session.Close()
-	c := session.DB(DB).C(DOCNAME)
-	results := Exercises{}
-	if err := c.Find(nil).All(&results); err != nil {
-		fmt.Println("Failed to write results:", err)
-	}
-	return results
+func init() {
+	appLog = loggerWrap.Log
+	dbConnector.Connect()
+	db = dbConnector.GetDB()
+	db.AutoMigrate(&Exercise{})
 }
 
-// AddExercise inserts an Exercise in the DB
+// GetExercises returns the list of Exercises
+func (r Repository) GetExercises() []Exercise {
+	exercises := make([]Exercise, 30)
+	result := db.Find(&exercises)
+
+	if result.Error != nil {
+		appLog.Error("Can't get exercises from db.\n%s", result.Error)
+	}
+
+	appLog.Infof("Found %s amount of exercises", result.RowsAffected)
+	return exercises
+}
+
+// AddExercise inserts an Exercise into DB
 func (r Repository) AddExercise(exercise Exercise) bool {
-	session, err := mgo.Dial(SERVER)
-	defer session.Close()
-	exercise.ID = bson.NewObjectId()
-	exercise.CreatedOn = time.Now()
-	exercise.ModifiedOn = time.Now()
-	session.DB(DB).C(DOCNAME).Insert(exercise)
-	if err != nil {
-		log.Fatal(err)
+	result := db.Create(&exercise)
+
+	if result.Error != nil {
+		appLog.Errorf("Can't create exercise %v\n%s", exercise, result.Error)
 		return false
 	}
+
+	return true
+}
+
+// AddExercises inserts an Exercises into DB
+func (r Repository) AddExercises(exercises []Exercise) bool {
+	result := db.Create(&exercises)
+
+	if result.Error != nil {
+		appLog.Errorf("Can't create exercise %v\n%s", exercises, result.Error)
+		return false
+	}
+
 	return true
 }
 
 // UpdateExercise updates an Exercise in the DB (not used for now)
 func (r Repository) UpdateExercise(exercise Exercise) bool {
-	session, err := mgo.Dial(SERVER)
-	defer session.Close()
-	exercise.ModifiedOn = time.Now()
-	session.DB(DB).C(DOCNAME).UpdateId(exercise.ID, exercise)
-	if err != nil {
-		log.Fatal(err)
+	result := db.Model(&exercise).Updates(exercise)
+
+	if result.Error != nil {
+		appLog.Error("Can't update exercise with values %v\n%s", exercise, result.Error)
 		return false
 	}
 	return true
@@ -66,19 +70,12 @@ func (r Repository) UpdateExercise(exercise Exercise) bool {
 
 // DeleteExercise deletes an Exercise (not used for now)
 func (r Repository) DeleteExercise(id string) string {
-	session, err := mgo.Dial(SERVER)
-	defer session.Close()
-	// Verify id is ObjectId, otherwise bail
-	if !bson.IsObjectIdHex(id) {
-		return "NOT FOUND"
+	result := db.Delete(&Exercise{}, id)
+
+	if result.Error != nil {
+		appLog.Error("Can't delete exercise with id %s\n%s", id, result.Error)
+		return "Error"
 	}
-	// Grab id
-	oid := bson.ObjectIdHex(id)
-	// Remove user
-	if err = session.DB(DB).C(DOCNAME).RemoveId(oid); err != nil {
-		log.Fatal(err)
-		return "INTERNAL ERR"
-	}
-	// Write status
+
 	return "OK"
 }

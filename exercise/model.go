@@ -3,19 +3,27 @@ package exercise
 import (
 	"time"
 
-	"gopkg.in/mgo.v2/bson"
+	"gorm.io/gorm"
 )
+
+// Tabler configuration for gorm to specify table name
+type Tabler interface {
+	TableName() string
+}
+
+// TableName overrides the table name used by Exercise to `exercises`
+func (Exercise) TableName() string {
+	return "exercises"
+}
 
 //Exercise represents an exercise
 type Exercise struct {
-	ID          bson.ObjectId `bson:"_id"`
-	Title       string        `json:"title"`
-	Description string        `json:"description"`
-	VideoLink   string        `json:"videoLink"`
-	Tags        []string      `json:"tags"`
-	CreatedOn   time.Time     `json:"createdOn"`
-	ModifiedOn  time.Time     `json:"modifiedOn"`
+	gorm.Model
+	ID          int64     `gorm:"primary_key;autoIncrement"`
+	Title       string    `json:"title"`
+	Description string    `json:"description"`
+	VideoLink   string    `json:"videoLink"`
+	Tags        string    `json:"tags"`
+	CreatedAt   time.Time `json:"createdAt"`
+	UpdatedAt   time.Time `json:"updatedAt"`
 }
-
-//Exercises is an array of Exercises
-type Exercises []Exercise
