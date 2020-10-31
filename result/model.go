@@ -3,18 +3,26 @@ package result
 import (
 	"time"
 
-	"gopkg.in/mgo.v2/bson"
+	"github.com/google/uuid"
+	"gorm.io/gorm"
 )
+
+// Tabler configuration for gorm to specify table name
+type Tabler interface {
+	TableName() string
+}
+
+// TableName overrides the table name used by Result to `results`
+func (Result) TableName() string {
+	return "results"
+}
 
 //Result represents an exercise
 type Result struct {
-	ID         bson.ObjectId `bson:"_id"`
-	Text       string        `json:"text"`
-	Tags       []string      `json:"tags"`
-	Date       time.Time     `json:"date"`
-	CreatedOn  time.Time     `json:"createdOn"`
-	ModifiedOn time.Time     `json:"modifiedOn"`
+	gorm.Model
+	ID        uuid.UUID `gorm:"primary_key; unique; type:uuid; default:uuid_generate_v4(); json:"id"`
+	Text      string    `gorm:"index"; json:"text"`
+	Tags      []string  `gorm:"index"; json:"tags"`
+	CreatedAt time.Time `json:"createdAt"`
+	UpdatedAt time.Time `json:"updatedAt"`
 }
-
-//Results is an array of Results
-type Results []Result

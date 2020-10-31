@@ -29,6 +29,12 @@ var routes = Routes{
 		controller.Index,
 	},
 	Route{
+		"Index",
+		"GET",
+		"/{id}",
+		controller.GetExercise,
+	},
+	Route{
 		"AddExercise",
 		"POST",
 		"/",

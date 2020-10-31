@@ -1,64 +1,99 @@
 package result
 
 import (
-	"fmt"
-	"log"
-	"time"
-
-	"gopkg.in/mgo.v2"
-	"gopkg.in/mgo.v2/bson"
+	config "gym-app/app-config"
+	dbConnector "gym-app/common/db"
+	loggerWrap "gym-app/common/logger"
+	"github.com/google/uuid"
+	"gorm.io/gorm"
 )
 
-//Repository ...
-type Repository struct{}
+// GetDB connection to the db
+func GetDB(conf config.DataConnectionConf, app string) *gorm.DB {
+	db := dbConnector.GetDBIntstance(&db.Specification{
+		Port: conf.PostgresPort,
+		Hostname: conf.PostgresHostname,
+		User: conf.PostgresUser,
+		Password: conf.PostgresPassword,
+		DbName: conf.PostgresDBName,
+		SSLMode: conf.PostgresSSLMode,
+		SearchPath: conf.PostgresSchema,
+	})
 
-// SERVER the DB server
-const SERVER = "localhost:27017"
+	if logger.Config.LogLevel == "trace" {
+		db.SetLogger(loggerWrap.NewLogger().WithFields(logrus.Fields{
+		"service": config.App,
+		"app_version": config.AppConfig.AppVersion,
+	}))
+	db.LogMode(true)
+	}
+	return db
+} 
 
-// DB the name of the DB instance
-const DB = "programs"
+var db *gorm.DB
+var log *logrus.Logger
 
-// DOCNAME the name of the document
-const DOCNAME = "results"
+func init() {
+	db = GetDB(config.DataConnectionConf, config.App)
+	log = loggerWrap.NewLogger()
+}
 
 // GetResults returns the list of Results
-func (r Repository) GetResults() Results {
-	session, err := mgo.Dial(SERVER)
-	if err != nil {
-		fmt.Println("Failed to establish connection to Mongo server:", err)
+func (r Repository) GetResults() []Result {
+	results := make([]Result, 30)
+	result := db.Find(&results)
+
+	if result.Error != nil {
+		log.Error("Can't get results from db.\n%s", result.Error)
 	}
-	defer session.Close()
-	c := session.DB(DB).C(DOCNAME)
-	results := Results{}
-	if err := c.Find(nil).All(&results); err != nil {
-		fmt.Println("Failed to write results:", err)
-	}
+
+	log.Infof("Found %d amount of results", result.RowsAffected)
 	return results
 }
 
-// AddResult inserts an Result in the DB
+// GetResult return the Result with id
+func (r Repository) GetResult(id uuid.UUID) (Result, err) {
+	result := Result{}
+	r := db.Find(&result, id)
+
+	if r.Error != nil {
+		log.Errorf("Can't create result %v\n%s", r, r.Error)
+		return nil, r.Error
+	}
+
+	return result, nil
+}
+
+// AddResult inserts an Result into DB
 func (r Repository) AddResult(result Result) bool {
-	session, err := mgo.Dial(SERVER)
-	defer session.Close()
-	result.ID = bson.NewObjectId()
-	result.CreatedOn = time.Now()
-	result.ModifiedOn = time.Now()
-	session.DB(DB).C(DOCNAME).Insert(result)
-	if err != nil {
-		log.Fatal(err)
+	result := db.Create(&result)
+
+	if result.Error != nil {
+		log.Errorf("Can't create result %v\n%s", result, result.Error)
 		return false
 	}
+
+	return true
+}
+
+// AddResults inserts an Results into DB
+func (r Repository) AddResults(results []Result) bool {
+	result := db.Create(&results)
+
+	if result.Error != nil {
+		log.Errorf("Can't create result %v\n%s", results, result.Error)
+		return false
+	}
+
 	return true
 }
 
 // UpdateResult updates an Result in the DB (not used for now)
 func (r Repository) UpdateResult(result Result) bool {
-	session, err := mgo.Dial(SERVER)
-	defer session.Close()
-	result.ModifiedOn = time.Now()
-	session.DB(DB).C(DOCNAME).UpdateId(result.ID, result)
-	if err != nil {
-		log.Fatal(err)
+	result := db.Model(&result).Updates(result)
+
+	if result.Error != nil {
+		log.Error("Can't update result with values %v\n%s", result, result.Error)
 		return false
 	}
 	return true
@@ -66,19 +101,12 @@ func (r Repository) UpdateResult(result Result) bool {
 
 // DeleteResult deletes an Result (not used for now)
 func (r Repository) DeleteResult(id string) string {
-	session, err := mgo.Dial(SERVER)
-	defer session.Close()
-	// Verify id is ObjectId, otherwise bail
-	if !bson.IsObjectIdHex(id) {
-		return "NOT FOUND"
+	result := db.Delete(&Result{}, id)
+
+	if result.Error != nil {
+		log.Error("Can't delete result with id %s\n%s", id, result.Error)
+		return "Error"
 	}
-	// Grab id
-	oid := bson.ObjectIdHex(id)
-	// Remove user
-	if err = session.DB(DB).C(DOCNAME).RemoveId(oid); err != nil {
-		log.Fatal(err)
-		return "INTERNAL ERR"
-	}
-	// Write status
+
 	return "OK"
 }

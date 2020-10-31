@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"io"
 	"io/ioutil"
-	"log"
 	"net/http"
 	"strings"
 
@@ -16,10 +15,11 @@ type Controller struct {
 	Repository Repository
 }
 
+
 // Index GET /
 func (c *Controller) Index(w http.ResponseWriter, r *http.Request) {
 	programs := c.Repository.GetPrograms() // list of all programs
-	log.Println("Found programs: ", len(programs))
+	log.Info("Found programs: ", len(programs))
 	data, _ := json.Marshal(programs)
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 	w.Header().Set("Access-Control-Allow-Origin", "*")
@@ -33,17 +33,17 @@ func (c *Controller) AddProgram(w http.ResponseWriter, r *http.Request) {
 	var program Program
 	body, err := ioutil.ReadAll(io.LimitReader(r.Body, 1048576)) // read the body of the request
 	if err != nil {
-		log.Fatalln("Error AddProgram", err)
+		log.Error("Error AddProgram", err)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 	if err := r.Body.Close(); err != nil {
-		log.Fatalln("Error AddProgram", err)
+		log.Error("Error AddProgram", err)
 	}
 	if err := json.Unmarshal(body, &program); err != nil { // unmarshal body contents as a type Candidate
 		w.WriteHeader(422) // unprocessable entity
 		if err := json.NewEncoder(w).Encode(err); err != nil {
-			log.Fatalln("Error AddProgram unmarshalling data", err)
+			log.Error("Error AddProgram unmarshalling data", err)
 			w.WriteHeader(http.StatusInternalServerError)
 			return
 		}
@@ -63,18 +63,18 @@ func (c *Controller) UpdateProgram(w http.ResponseWriter, r *http.Request) {
 	var program Program
 	body, err := ioutil.ReadAll(io.LimitReader(r.Body, 1048576)) // read the body of the request
 	if err != nil {
-		log.Fatalln("Error UpdateProgram", err)
+		log.Error("Error UpdateProgram", err)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 	if err := r.Body.Close(); err != nil {
-		log.Fatalln("Error UpdateProgram", err)
+		log.Error("Error UpdateProgram", err)
 	}
 	if err := json.Unmarshal(body, &program); err != nil { // unmarshal body contents as a type Candidate
 		w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 		w.WriteHeader(422) // unprocessable entity
 		if err := json.NewEncoder(w).Encode(err); err != nil {
-			log.Fatalln("Error UpdateProgram unmarshalling data", err)
+			log.Error("Error UpdateProgram unmarshalling data", err)
 			w.WriteHeader(http.StatusInternalServerError)
 			return
 		}

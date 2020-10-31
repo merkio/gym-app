@@ -1,64 +1,97 @@
 package program
 
 import (
-	"fmt"
-	"log"
-	"time"
+	config "gym-app/app-config"
+	dbConnector "gym-app/common/db"
+	loggerWrap "gym-app/common/logger"
 
-	"gopkg.in/mgo.v2"
-	"gopkg.in/mgo.v2/bson"
+	"gorm.io/gorm"
 )
 
-//Repository ...
-type Repository struct{}
+func GetDB(conf config.DataConnectionConf, app string) *gorm.DB {
+	db := dbConnector.GetDBIntstance(&db.Specification{
+		Port: conf.PostgresPort,
+		Hostname: conf.PostgresHostname,
+		User: conf.PostgresUser,
+		Password: conf.PostgresPassword,
+		DbName: conf.PostgresDBName,
+		SSLMode: conf.PostgresSSLMode,
+		SearchPath: conf.PostgresSchema
+	})
 
-// SERVER the DB server
-const SERVER = "localhost:27017"
-
-// DB the name of the DB instance
-const DB = "programs"
-
-// DOCNAME the name of the document
-const DOCNAME = "programs"
-
-// GetPrograms returns the list of Programs
-func (r Repository) GetPrograms() Programs {
-	session, err := mgo.Dial(SERVER)
-	if err != nil {
-		fmt.Println("Failed to establish connection to Mongo server:", err)
+	if logger.Config.LogLevel == "trace" {
+		db.SetLogger(loggerWrap.NewLogger().WithFields(logrus.Fields{
+		"service": config.App,
+		"app_version": config.AppConfig.AppVersion,
+	}))
+	db.LogMode(true)
 	}
-	defer session.Close()
-	c := session.DB(DB).C(DOCNAME)
-	results := Programs{}
-	if err := c.Find(nil).All(&results); err != nil {
-		fmt.Println("Failed to write results:", err)
-	}
-	return results
+	return db
+} 
+
+var db *gorm.DB
+var log *logrus.Logger
+
+func init() {
+	db = GetDB(config.DataConnectionConf, config.App)
+	log = loggerWrap.NewLogger()
 }
 
-// AddProgram inserts an Program in the DB
-func (r Repository) AddProgram(program Program) bool {
-	session, err := mgo.Dial(SERVER)
-	defer session.Close()
-	program.ID = bson.NewObjectId()
-	program.CreatedOn = time.Now()
-	program.ModifiedOn = time.Now()
-	session.DB(DB).C(DOCNAME).Insert(program)
-	if err != nil {
-		log.Fatal(err)
+// GetPrograms returns the list of Programs
+func (r Repository) GetPrograms() []Program {
+	programs := make([]Program, 30)
+	result := db.Find(&programs)
+
+	if result.Error != nil {
+		log.Error("Can't get programs from db.\n%s", result.Error)
+	}
+
+	log.Infof("Found %d amount of programs", result.RowsAffected)
+	return programs
+}
+
+// GetProgram return the Program with id
+func (r Repository) GetProgram(id int64) Program {
+	result := db.Create(&program)
+
+	if result.Error != nil {
+		log.Errorf("Can't create program %v\n%s", program, result.Error)
 		return false
 	}
+
+	return true
+}
+
+// AddProgram inserts an Program into DB
+func (r Repository) AddProgram(program Program) bool {
+	result := db.Create(&program)
+
+	if result.Error != nil {
+		log.Errorf("Can't create program %v\n%s", program, result.Error)
+		return false
+	}
+
+	return true
+}
+
+// AddPrograms inserts an Programs into DB
+func (r Repository) AddPrograms(programs []Program) bool {
+	result := db.Create(&programs)
+
+	if result.Error != nil {
+		log.Errorf("Can't create program %v\n%s", programs, result.Error)
+		return false
+	}
+
 	return true
 }
 
 // UpdateProgram updates an Program in the DB (not used for now)
 func (r Repository) UpdateProgram(program Program) bool {
-	session, err := mgo.Dial(SERVER)
-	defer session.Close()
-	program.ModifiedOn = time.Now()
-	session.DB(DB).C(DOCNAME).UpdateId(program.ID, program)
-	if err != nil {
-		log.Fatal(err)
+	result := db.Model(&program).Updates(program)
+
+	if result.Error != nil {
+		log.Error("Can't update program with values %v\n%s", program, result.Error)
 		return false
 	}
 	return true
@@ -66,19 +99,12 @@ func (r Repository) UpdateProgram(program Program) bool {
 
 // DeleteProgram deletes an Program (not used for now)
 func (r Repository) DeleteProgram(id string) string {
-	session, err := mgo.Dial(SERVER)
-	defer session.Close()
-	// Verify id is ObjectId, otherwise bail
-	if !bson.IsObjectIdHex(id) {
-		return "NOT FOUND"
+	result := db.Delete(&Program{}, id)
+
+	if result.Error != nil {
+		log.Error("Can't delete program with id %s\n%s", id, result.Error)
+		return "Error"
 	}
-	// Grab id
-	oid := bson.ObjectIdHex(id)
-	// Remove user
-	if err = session.DB(DB).C(DOCNAME).RemoveId(oid); err != nil {
-		log.Fatal(err)
-		return "INTERNAL ERR"
-	}
-	// Write status
+
 	return "OK"
 }
