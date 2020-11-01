@@ -2,30 +2,21 @@ package exercise
 
 import (
 	"encoding/json"
-	"gym-app/common/logger"
 	"io"
 	"io/ioutil"
 	"net/http"
-	"strings"
 
 	"github.com/gorilla/mux"
-	"github.com/sirupsen/logrus"
 )
 
 //Controller ...
 type Controller struct {
-	Repository Repository
-}
-
-var log *logrus.Logger
-
-func init() {
-	log = logger.NewLogger()
+	Repository ERepository
 }
 
 // Index GET /
 func (c *Controller) Index(w http.ResponseWriter, r *http.Request) {
-	exercises := c.Repository.GetExercises() // list of all exercises
+	exercises := c.Repository.Get() // list of all exercises
 	log.Info(exercises)
 	data, _ := json.Marshal(exercises)
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
@@ -38,19 +29,14 @@ func (c *Controller) Index(w http.ResponseWriter, r *http.Request) {
 // GetExercise GET /{id}
 func (c *Controller) GetExercise(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
-	id := vars["id"]                                              // param id
-	if exercise, err := c.Repository.GetExercise(id); err != "" { // delete a exercise by id
-		if strings.Contains(err, "404") {
-			w.WriteHeader(http.StatusNotFound)
-		} else if strings.Contains(err, "500") {
-			w.WriteHeader(http.StatusInternalServerError)
-		}
+	var exercise Exercise
+	var err error
+
+	id := vars["id"]
+	if exercise, err = c.Repository.GetByID(id); err != nil { // get an exercise by id
+		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
-	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
-	w.Header().Set("Access-Control-Allow-Origin", "*")
-	w.WriteHeader(http.StatusOK)
-	return
 
 	data, _ := json.Marshal(exercise)
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
@@ -80,13 +66,14 @@ func (c *Controller) AddExercise(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 	}
-	success := c.Repository.AddExercise(exercise) // adds the exercise to the DB
-	if !success {
+	id, err := c.Repository.Create(exercise) // adds the exercise to the DB
+	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 	w.WriteHeader(http.StatusCreated)
+	w.Write([]byte(id))
 	return
 }
 
@@ -111,8 +98,8 @@ func (c *Controller) UpdateExercise(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 	}
-	success := c.Repository.UpdateExercise(exercise) // updates the exercise in the DB
-	if !success {
+	err = c.Repository.Update(exercise) // updates the exercise in the DB
+	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
@@ -125,17 +112,14 @@ func (c *Controller) UpdateExercise(w http.ResponseWriter, r *http.Request) {
 // DeleteExercise DELETE /
 func (c *Controller) DeleteExercise(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
-	id := vars["id"]                                       // param id
-	if err := c.Repository.DeleteExercise(id); err != "" { // delete a exercise by id
-		if strings.Contains(err, "404") {
-			w.WriteHeader(http.StatusNotFound)
-		} else if strings.Contains(err, "500") {
-			w.WriteHeader(http.StatusInternalServerError)
-		}
+
+	id := vars["id"]
+	if err := c.Repository.DeleteByID(id); err != nil { // delete a exercise by id
+		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 	w.Header().Set("Access-Control-Allow-Origin", "*")
-	w.WriteHeader(http.StatusOK)
+	w.WriteHeader(http.StatusNoContent)
 	return
 }

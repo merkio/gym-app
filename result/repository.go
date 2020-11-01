@@ -2,83 +2,91 @@ package result
 
 import (
 	config "gym-app/app-config"
-	dbConnector "gym-app/common/db"
+	"gym-app/common/db"
 	loggerWrap "gym-app/common/logger"
-	"github.com/google/uuid"
+	repo "gym-app/repository"
+
+	"github.com/sirupsen/logrus"
 	"gorm.io/gorm"
 )
 
+// Repository results repository
+type Repository interface {
+	repo.BaseRepository
+	CreateAll(results []Result) bool
+	GetByID(id string) (Result, error)
+	Get() []Result
+}
+
+// RRepository instance of RRepository
+type RRepository struct {
+	Repository
+}
+
 // GetDB connection to the db
 func GetDB(conf config.DataConnectionConf, app string) *gorm.DB {
-	db := dbConnector.GetDBIntstance(&db.Specification{
-		Port: conf.PostgresPort,
-		Hostname: conf.PostgresHostname,
-		User: conf.PostgresUser,
-		Password: conf.PostgresPassword,
-		DbName: conf.PostgresDBName,
-		SSLMode: conf.PostgresSSLMode,
+	dbConn := db.GetDBIntstance(&db.Specification{
+		Port:       conf.PostgresPort,
+		Hostname:   conf.PostgresHostname,
+		User:       conf.PostgresUser,
+		Password:   conf.PostgresPassword,
+		DbName:     conf.PostgresDBName,
+		SSLMode:    conf.PostgresSSLMode,
 		SearchPath: conf.PostgresSchema,
 	})
 
-	if logger.Config.LogLevel == "trace" {
-		db.SetLogger(loggerWrap.NewLogger().WithFields(logrus.Fields{
-		"service": config.App,
-		"app_version": config.AppConfig.AppVersion,
-	}))
-	db.LogMode(true)
-	}
-	return db
-} 
+	return dbConn
+}
 
-var db *gorm.DB
+var dbConn *gorm.DB
 var log *logrus.Logger
 
 func init() {
-	db = GetDB(config.DataConnectionConf, config.App)
+	dbConn = GetDB(config.DataConnectionConfig, config.App)
 	log = loggerWrap.NewLogger()
 }
 
-// GetResults returns the list of Results
-func (r Repository) GetResults() []Result {
+// Get returns the list of Results
+func (r RRepository) Get() []Result {
 	results := make([]Result, 30)
-	result := db.Find(&results)
+	result := dbConn.Find(&results)
 
 	if result.Error != nil {
-		log.Error("Can't get results from db.\n%s", result.Error)
+		log.Error("Can't get results from dbConn.\n%s", result.Error)
 	}
 
 	log.Infof("Found %d amount of results", result.RowsAffected)
 	return results
 }
 
-// GetResult return the Result with id
-func (r Repository) GetResult(id uuid.UUID) (Result, err) {
+// GetByID return the Result with id
+func (r RRepository) GetByID(id string) (Result, error) {
 	result := Result{}
-	r := db.Find(&result, id)
+	res := dbConn.First(&result, "id = ?", id)
 
-	if r.Error != nil {
-		log.Errorf("Can't create result %v\n%s", r, r.Error)
-		return nil, r.Error
+	if res.Error != nil {
+		log.Errorf("Can't create result %v\n%s", res, res.Error)
+		return Result{}, res.Error
 	}
 
 	return result, nil
 }
 
-// AddResult inserts an Result into DB
-func (r Repository) AddResult(result Result) bool {
-	result := db.Create(&result)
+// Create inserts an Result into DB
+func (r RRepository) Create(result Result) (string, error) {
+	res := dbConn.Create(&result)
 
-	if result.Error != nil {
-		log.Errorf("Can't create result %v\n%s", result, result.Error)
-		return false
+	if res.Error != nil {
+		log.Errorf("Can't create result %v\n%s", result, res.Error)
+		return "", res.Error
 	}
 
-	return true
+	return result.ID, nil
 }
 
-// AddResults inserts an Results into DB
-func (r Repository) AddResults(results []Result) bool {
-	result := db.Create(&results)
+// CreateAll inserts an Results into DB
+func (r RRepository) CreateAll(results []Result) bool {
+	result := dbConn.Create(&results)
 
 	if result.Error != nil {
 		log.Errorf("Can't create result %v\n%s", results, result.Error)
@@ -88,25 +96,25 @@ func (r Repository) AddResults(results []Result) bool {
 	return true
 }
 
-// UpdateResult updates an Result in the DB (not used for now)
-func (r Repository) UpdateResult(result Result) bool {
-	result := db.Model(&result).Updates(result)
+// Update updates an Result in the DB (not used for now)
+func (r RRepository) Update(result Result) error {
+	res := dbConn.Model(&result).Updates(result)
 
-	if result.Error != nil {
-		log.Error("Can't update result with values %v\n%s", result, result.Error)
-		return false
+	if res.Error != nil {
+		log.Error("Can't update result with values %v\n%s", result, res.Error)
+		return res.Error
 	}
-	return true
+	return nil
 }
 
-// DeleteResult deletes an Result (not used for now)
-func (r Repository) DeleteResult(id string) string {
-	result := db.Delete(&Result{}, id)
+// DeleteByID deletes an Result (not used for now)
+func (r RRepository) DeleteByID(id string) error {
+	result := dbConn.Delete(&Result{}, id)
 
 	if result.Error != nil {
 		log.Error("Can't delete result with id %s\n%s", id, result.Error)
-		return "Error"
+		return result.Error
 	}
 
-	return "OK"
+	return nil
 }

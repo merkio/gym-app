@@ -8,7 +8,7 @@ import (
 	"github.com/gorilla/mux"
 )
 
-var controller = &Controller{Repository: Repository{}}
+var controller = &Controller{Repository: RRepository{}}
 
 // Route defines a route
 type Route struct {
@@ -25,19 +25,25 @@ var routes = Routes{
 	Route{
 		"Index",
 		"GET",
-		"/",
+		"",
 		controller.Index,
+	},
+	Route{
+		"Index",
+		"GET",
+		"/{id}",
+		controller.GetResult,
 	},
 	Route{
 		"AddResult",
 		"POST",
-		"/",
+		"",
 		controller.AddResult,
 	},
 	Route{
 		"UpdateResult",
 		"PUT",
-		"/",
+		"",
 		controller.UpdateResult,
 	},
 	Route{

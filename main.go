@@ -19,15 +19,17 @@ func main() {
 	program.NewSubRouter(router)
 	result.NewSubRouter(router)
 
-	config.LoadConfig()
-
-	db := exercise.GetDB(config.DataConnectionConf, config.App)
-	db.AutoMigrate(&exercise.Exercise{}, &program.Program{}, &result.Result{})
+	db := exercise.GetDB(config.DataConnectionConfig, config.App)
+	err := db.AutoMigrate(&result.Result{}, &exercise.Exercise{}, &program.Program{})
+	if err != nil {
+		log.Fatal(err)
+	}
 
 	// these two lines are important in order to allow access from the front-end side to the methods
 	allowedOrigins := handlers.AllowedOrigins([]string{"*"})
 	allowedMethods := handlers.AllowedMethods([]string{"GET", "POST", "DELETE", "PUT"})
 	// launch server with CORS validations
+	log.Print("Starting server on port :9000")
 	log.Fatal(http.ListenAndServe(":9000",
 		handlers.CORS(allowedOrigins, allowedMethods)(router)))
 }

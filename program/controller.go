@@ -5,22 +5,41 @@ import (
 	"io"
 	"io/ioutil"
 	"net/http"
-	"strings"
 
 	"github.com/gorilla/mux"
 )
 
 //Controller ...
 type Controller struct {
-	Repository Repository
+	Repository PRepository
 }
-
 
 // Index GET /
 func (c *Controller) Index(w http.ResponseWriter, r *http.Request) {
-	programs := c.Repository.GetPrograms() // list of all programs
+	programs := c.Repository.Get() // list of all programs
 	log.Info("Found programs: ", len(programs))
 	data, _ := json.Marshal(programs)
+	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
+	w.Header().Set("Access-Control-Allow-Origin", "*")
+	w.WriteHeader(http.StatusOK)
+	w.Write(data)
+	return
+}
+
+// GetProgram GET /id
+func (c *Controller) GetProgram(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	id := vars["id"]
+	var program Program
+	var err error
+
+	if program, err = c.Repository.GetByID(id); err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	log.Info("Found program: ", program)
+	data, _ := json.Marshal(program)
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 	w.Header().Set("Access-Control-Allow-Origin", "*")
 	w.WriteHeader(http.StatusOK)
@@ -48,13 +67,14 @@ func (c *Controller) AddProgram(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 	}
-	success := c.Repository.AddProgram(program) // adds the program to the DB
-	if !success {
+	id, err := c.Repository.Create(program) // adds the program to the DB
+	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 	w.WriteHeader(http.StatusCreated)
+	w.Write([]byte(id))
 	return
 }
 
@@ -79,8 +99,8 @@ func (c *Controller) UpdateProgram(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 	}
-	success := c.Repository.UpdateProgram(program) // updates the program in the DB
-	if !success {
+	err = c.Repository.Update(program) // updates the program in the DB
+	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
@@ -93,17 +113,14 @@ func (c *Controller) UpdateProgram(w http.ResponseWriter, r *http.Request) {
 // DeleteProgram DELETE /
 func (c *Controller) DeleteProgram(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
-	id := vars["id"]                                      // param id
-	if err := c.Repository.DeleteProgram(id); err != "" { // delete a program by id
-		if strings.Contains(err, "404") {
-			w.WriteHeader(http.StatusNotFound)
-		} else if strings.Contains(err, "500") {
-			w.WriteHeader(http.StatusInternalServerError)
-		}
+
+	id := vars["id"]
+	if err := c.Repository.DeleteByID(id); err != nil { // delete a program by id
+		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 	w.Header().Set("Access-Control-Allow-Origin", "*")
-	w.WriteHeader(http.StatusOK)
+	w.WriteHeader(http.StatusNoContent)
 	return
 }

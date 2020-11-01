@@ -2,81 +2,91 @@ package exercise
 
 import (
 	config "gym-app/app-config"
-	dbConnector "gym-app/common/db"
+	"gym-app/common/db"
 	loggerWrap "gym-app/common/logger"
+	repo "gym-app/repository"
 
-	"github.com/google/uuid"
+	"github.com/sirupsen/logrus"
 	"gorm.io/gorm"
 )
 
+// Repository exercise repository
+type Repository interface {
+	repo.BaseRepository
+	CreateAll(exercises []Exercise) bool
+	GetByID(id string) (Exercise, error)
+	Get() []Exercise
+}
+
+// ERepository instance of Repository
+type ERepository struct {
+	Repository
+}
+
+// GetDB get connect to the db
 func GetDB(conf config.DataConnectionConf, app string) *gorm.DB {
-	db := dbConnector.GetDBIntstance(&db.Specification{
-		Port: conf.PostgresPort,
-		Hostname: conf.PostgresHostname,
-		User: conf.PostgresUser,
-		Password: conf.PostgresPassword,
-		DbName: conf.PostgresDBName,
-		SSLMode: conf.PostgresSSLMode,
+	dbConn := db.GetDBIntstance(&db.Specification{
+		Port:       conf.PostgresPort,
+		Hostname:   conf.PostgresHostname,
+		User:       conf.PostgresUser,
+		Password:   conf.PostgresPassword,
+		DbName:     conf.PostgresDBName,
+		SSLMode:    conf.PostgresSSLMode,
 		SearchPath: conf.PostgresSchema,
 	})
 
-	if logger.Config.LogLevel == "trace" {
-		db.SetLogger(loggerWrap.NewLogger().WithFields(logrus.Fields{
-		"service": config.App,
-		"app_version": config.AppConfig.AppVersion,
-	}))
-	db.LogMode(true)
-	}
-	return db
-} 
-
-var db *gorm.DB
-
-func init() {
-	db = GetDB(config.DataConnectionConf, config.App)
+	return dbConn
 }
 
-// GetExercises returns the list of Exercises
-func (r Repository) GetExercises() []Exercise {
+var dbConn *gorm.DB
+var log *logrus.Logger
+
+func init() {
+	dbConn = GetDB(config.DataConnectionConfig, config.App)
+	log = loggerWrap.NewLogger()
+}
+
+// Get returns the list of Exercises
+func (r ERepository) Get() []Exercise {
 	exercises := make([]Exercise, 30)
-	result := db.Find(&exercises)
+	result := dbConn.Find(&exercises)
 
 	if result.Error != nil {
-		log.Error("Can't get exercises from db.\n%s", result.Error)
+		log.Error("Can't get exercises from dbConn.\n%s", result.Error)
 	}
 
 	log.Infof("Found %d amount of exercises", result.RowsAffected)
 	return exercises
 }
 
-// GetExercise return the Exercise with id
-func (r Repository) GetExercise(id uuid.UUID) (Exercise, err) {
+// GetByID return the Exercise with id
+func (r ERepository) GetByID(id string) (Exercise, error) {
 	exercise := Exercise{}
-	result := db.First(&exercise, id)
+	result := dbConn.First(&exercise, "id = ?", id)
 
 	if result.Error != nil {
 		log.Errorf("Can't create exercise %v\n%s", exercise, result.Error)
-		return nil, result.Error
+		return Exercise{}, result.Error
 	}
 
 	return exercise, nil
 }
 
-// AddExercise inserts an Exercise into DB
-func (r Repository) AddExercise(exercise Exercise) bool {
-	result := db.Create(&exercise)
+// Create inserts an Exercise into DB
+func (r ERepository) Create(exercise Exercise) (string, error) {
+	result := dbConn.Create(&exercise)
 
 	if result.Error != nil {
 		log.Errorf("Can't create exercise %v\n%s", exercise, result.Error)
-		return false
+		return "", result.Error
 	}
 
-	return true
+	return exercise.ID, nil
 }
 
-// AddExercises inserts an Exercises into DB
-func (r Repository) AddExercises(exercises []Exercise) bool {
-	result := db.Create(&exercises)
+// CreateAll inserts an Exercises into DB
+func (r ERepository) CreateAll(exercises []Exercise) bool {
+	result := dbConn.Create(&exercises)
 
 	if result.Error != nil {
 		log.Errorf("Can't create exercise %v\n%s", exercises, result.Error)
@@ -86,25 +96,25 @@ func (r Repository) AddExercises(exercises []Exercise) bool {
 	return true
 }
 
-// UpdateExercise updates an Exercise in the DB (not used for now)
-func (r Repository) UpdateExercise(exercise Exercise) bool {
-	result := db.Model(&exercise).Updates(exercise)
+// Update updates an Exercise in the DB (not used for now)
+func (r ERepository) Update(exercise Exercise) error {
+	result := dbConn.Model(&exercise).Updates(exercise)
 
 	if result.Error != nil {
 		log.Error("Can't update exercise with values %v\n%s", exercise, result.Error)
-		return false
+		return result.Error
 	}
-	return true
+	return nil
 }
 
-// DeleteExercise deletes an Exercise (not used for now)
-func (r Repository) DeleteExercise(id uuid.UUID) string {
-	result := db.Delete(&Exercise{}, id)
+// DeleteByID deletes an Exercise (not used for now)
+func (r ERepository) DeleteByID(id string) error {
+	result := dbConn.Delete(&Exercise{}, id)
 
 	if result.Error != nil {
 		log.Error("Can't delete exercise with id %s\n%s", id, result.Error)
-		return "Error"
+		return result.Error
 	}
 
-	return "OK"
+	return nil
 }
