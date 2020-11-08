@@ -23,7 +23,6 @@ func (c *Controller) Index(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Access-Control-Allow-Origin", "*")
 	w.WriteHeader(http.StatusOK)
 	w.Write(data)
-	return
 }
 
 // GetProgram GET /id
@@ -44,7 +43,6 @@ func (c *Controller) GetProgram(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Access-Control-Allow-Origin", "*")
 	w.WriteHeader(http.StatusOK)
 	w.Write(data)
-	return
 }
 
 // AddProgram POST /
@@ -75,7 +73,6 @@ func (c *Controller) AddProgram(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 	w.WriteHeader(http.StatusCreated)
 	w.Write([]byte(id))
-	return
 }
 
 // UpdateProgram PUT /

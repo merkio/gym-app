@@ -25,7 +25,7 @@ type ERepository struct {
 
 // GetDB get connect to the db
 func GetDB(conf config.DataConnectionConf, app string) *gorm.DB {
-	dbConn := db.GetDBIntstance(&db.Specification{
+	dbConn := db.GetDBInstance(&db.Specification{
 		Port:       conf.PostgresPort,
 		Hostname:   conf.PostgresHostname,
 		User:       conf.PostgresUser,
@@ -52,7 +52,7 @@ func (r ERepository) Get() []Exercise {
 	result := dbConn.Find(&exercises)
 
 	if result.Error != nil {
-		log.Error("Can't get exercises from dbConn.\n%s", result.Error)
+		log.Error("Can't get exercises from dbConn.\n", result.Error)
 	}
 
 	log.Infof("Found %d amount of exercises", result.RowsAffected)
@@ -65,7 +65,7 @@ func (r ERepository) GetByID(id string) (Exercise, error) {
 	result := dbConn.First(&exercise, "id = ?", id)
 
 	if result.Error != nil {
-		log.Errorf("Can't create exercise %v\n%s", exercise, result.Error)
+		log.Errorf("Can't create exercise %v\n", exercise, result.Error)
 		return Exercise{}, result.Error
 	}
 
@@ -77,7 +77,7 @@ func (r ERepository) Create(exercise Exercise) (string, error) {
 	result := dbConn.Create(&exercise)
 
 	if result.Error != nil {
-		log.Errorf("Can't create exercise %v\n%s", exercise, result.Error)
+		log.Errorf("Can't create exercise %v\n", exercise, result.Error)
 		return "", result.Error
 	}
 
@@ -89,7 +89,7 @@ func (r ERepository) CreateAll(exercises []Exercise) bool {
 	result := dbConn.Create(&exercises)
 
 	if result.Error != nil {
-		log.Errorf("Can't create exercise %v\n%s", exercises, result.Error)
+		log.Errorf("Can't create exercise %v\n", exercises, result.Error)
 		return false
 	}
 
@@ -101,7 +101,7 @@ func (r ERepository) Update(exercise Exercise) error {
 	result := dbConn.Model(&exercise).Updates(exercise)
 
 	if result.Error != nil {
-		log.Error("Can't update exercise with values %v\n%s", exercise, result.Error)
+		log.Error("Can't update exercise with values %v\n", exercise, result.Error)
 		return result.Error
 	}
 	return nil
@@ -112,7 +112,7 @@ func (r ERepository) DeleteByID(id string) error {
 	result := dbConn.Delete(&Exercise{}, id)
 
 	if result.Error != nil {
-		log.Error("Can't delete exercise with id %s\n%s", id, result.Error)
+		log.Error("Can't delete exercise with id %s\n", id, result.Error)
 		return result.Error
 	}
 

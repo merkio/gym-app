@@ -36,8 +36,8 @@ var log = logger.NewLogger()
 
 const dbArgsFmt = "host=%s port=%s user=%s password=%s dbname=%s sslmode=%s search_path=%s"
 
-//GetDBIntstance connect to the database
-func GetDBIntstance(dbs *Specification) *gorm.DB {
+//GetDBInstance connect to the database
+func GetDBInstance(dbs *Specification) *gorm.DB {
 	dbArgs := fmt.Sprintf(dbArgsFmt, dbs.Hostname, dbs.Port, dbs.User, dbs.Password, dbs.DbName, dbs.SSLMode, dbs.SearchPath)
 	db, err := gorm.Open(postgres.Open(dbArgs), &gorm.Config{})
 
