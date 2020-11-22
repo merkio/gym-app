@@ -8,7 +8,7 @@ import (
 	"github.com/gorilla/mux"
 )
 
-var controller = &Controller{Repository: RRepository{}}
+var controller = &Controller{repository: RRepository{}}
 
 // Route defines a route
 type Route struct {

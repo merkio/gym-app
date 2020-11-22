@@ -65,7 +65,7 @@ func (r ERepository) GetByID(id string) (Exercise, error) {
 	result := dbConn.First(&exercise, "id = ?", id)
 
 	if result.Error != nil {
-		log.Errorf("Can't create exercise %v\n", exercise, result.Error)
+		log.Errorf("Can't create exercise %v\n%v", exercise, result.Error)
 		return Exercise{}, result.Error
 	}
 
@@ -77,7 +77,7 @@ func (r ERepository) Create(exercise Exercise) (string, error) {
 	result := dbConn.Create(&exercise)
 
 	if result.Error != nil {
-		log.Errorf("Can't create exercise %v\n", exercise, result.Error)
+		log.Errorf("Can't create exercise %v\n%v", exercise, result.Error)
 		return "", result.Error
 	}
 
@@ -89,7 +89,7 @@ func (r ERepository) CreateAll(exercises []Exercise) bool {
 	result := dbConn.Create(&exercises)
 
 	if result.Error != nil {
-		log.Errorf("Can't create exercise %v\n", exercises, result.Error)
+		log.Errorf("Can't create exercise %v\n%v", exercises, result.Error)
 		return false
 	}
 
@@ -101,7 +101,7 @@ func (r ERepository) Update(exercise Exercise) error {
 	result := dbConn.Model(&exercise).Updates(exercise)
 
 	if result.Error != nil {
-		log.Error("Can't update exercise with values %v\n", exercise, result.Error)
+		log.Errorf("Can't update exercise with values %v\n%v", exercise, result.Error)
 		return result.Error
 	}
 	return nil
@@ -112,7 +112,7 @@ func (r ERepository) DeleteByID(id string) error {
 	result := dbConn.Delete(&Exercise{}, id)
 
 	if result.Error != nil {
-		log.Error("Can't delete exercise with id %s\n", id, result.Error)
+		log.Errorf("Can't delete exercise with id %s\n%v", id, result.Error)
 		return result.Error
 	}
 

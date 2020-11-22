@@ -52,9 +52,9 @@ export default {
       drawer: false,
       items: [
         {title: 'Home', link: '/', icon: 'home'},
-        {title: 'Programs', link: 'programs', icon: 'address-book'},
-        {title: 'Exercises', link: 'exercises', icon: 'list'},
-        {title: 'Results', link: 'results', icon: 'book'}
+        {title: 'Programs', link: '/programs', icon: 'address-book'},
+        {title: 'Exercises', link: '/exercises', icon: 'list'},
+        {title: 'Results', link: '/results', icon: 'book'}
       ]
     }
   }

@@ -15,7 +15,7 @@
             <v-toolbar
                 flat
             >
-              <v-toolbar-title>CRUD</v-toolbar-title>
+              <v-toolbar-title>PROGRAMS</v-toolbar-title>
               <v-divider
                   class="mx-4"
                   inset

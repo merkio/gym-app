@@ -27,7 +27,7 @@ func CollectVkMessages() {
 		log.Error(err) // just example
 	}
 
-	s.Every().Minute(25).Hour(19).Do(vkCollectorTask, "", 10, 0)
+	s.Every().Minute(7).Hour(19).Do(vkCollectorTask, "", 10, 0)
 }
 
 func vkCollectorTask(query string, count, offset int) {

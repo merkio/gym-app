@@ -65,7 +65,7 @@ func (r RRepository) GetByID(id string) (Result, error) {
 	res := dbConn.First(&result, "id = ?", id)
 
 	if res.Error != nil {
-		log.Errorf("Can't create result %v\n", res, res.Error)
+		log.Errorf("Can't create result %v\n%v", res, res.Error)
 		return Result{}, res.Error
 	}
 
@@ -77,7 +77,7 @@ func (r RRepository) Create(result Result) (string, error) {
 	res := dbConn.Create(&result)
 
 	if res.Error != nil {
-		log.Errorf("Can't create result %v\n", result, res.Error)
+		log.Errorf("Can't create result %v\n%v", result, res.Error)
 		return "", res.Error
 	}
 
@@ -89,7 +89,7 @@ func (r RRepository) CreateAll(results []Result) bool {
 	result := dbConn.Create(&results)
 
 	if result.Error != nil {
-		log.Errorf("Can't create result %v\n%s", results, result.Error)
+		log.Errorf("Can't create result %v\n%v", results, result.Error)
 		return false
 	}
 
@@ -101,7 +101,7 @@ func (r RRepository) Update(result Result) error {
 	res := dbConn.Model(&result).Updates(result)
 
 	if res.Error != nil {
-		log.Error("Can't update result with values %v\n", result, res.Error)
+		log.Error("Can't update result with values %v\n%v", result, res.Error)
 		return res.Error
 	}
 	return nil
@@ -112,7 +112,7 @@ func (r RRepository) DeleteByID(id string) error {
 	result := dbConn.Delete(&Result{}, id)
 
 	if result.Error != nil {
-		log.Error("Can't delete result with id %s\n", id, result.Error)
+		log.Error("Can't delete result with id %s\n%v", id, result.Error)
 		return result.Error
 	}
 

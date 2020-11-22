@@ -15,7 +15,7 @@
         <v-text-field
           outlined
           readonly
-        >{{progr}}</v-text-field>
+        >{{program}}</v-text-field>
       </v-row>
     </v-card-text>
     <v-card-actions>

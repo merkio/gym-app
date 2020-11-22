@@ -1,5 +1,6 @@
 package tasks
 
+// WallResponseItem vk wall response item
 type WallResponseItem struct {
 	ID       int    `json:"id"`
 	FromID   int    `json:"from_id"`
@@ -9,11 +10,13 @@ type WallResponseItem struct {
 	Text     string `json:"text"`
 }
 
+// WallResponseData vk wall response data
 type WallResponseData struct {
 	Count int                `json:"count"`
 	Items []WallResponseItem `json:"items"`
 }
 
+// WallResponse vk wall response
 type WallResponse struct {
 	Response WallResponseData `json:"response"`
 }

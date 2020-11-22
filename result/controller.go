@@ -11,19 +11,18 @@ import (
 
 //Controller ...
 type Controller struct {
-	Repository RRepository
+	repository RRepository
 }
 
 // Index GET /
 func (c *Controller) Index(w http.ResponseWriter, r *http.Request) {
-	results := c.Repository.Get() // list of all results
+	results := c.repository.Get() // list of all results
 	log.Info("Found results: ", len(results))
 	data, _ := json.Marshal(results)
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 	w.Header().Set("Access-Control-Allow-Origin", "*")
 	w.WriteHeader(http.StatusOK)
-	w.Write(data)
-	return
+	_, _ = w.Write(data)
 }
 
 // GetResult GET /id
@@ -33,7 +32,7 @@ func (c *Controller) GetResult(w http.ResponseWriter, r *http.Request) {
 	var result Result
 	var err error
 
-	if result, err = c.Repository.GetByID(id); err != nil {
+	if result, err = c.repository.GetByID(id); err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
@@ -43,8 +42,7 @@ func (c *Controller) GetResult(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 	w.Header().Set("Access-Control-Allow-Origin", "*")
 	w.WriteHeader(http.StatusOK)
-	w.Write(data)
-	return
+	_, _ = w.Write(data)
 }
 
 // AddResult POST /
@@ -67,15 +65,14 @@ func (c *Controller) AddResult(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 	}
-	id, err := c.Repository.Create(result) // adds the result to the DB
+	id, err := c.repository.Create(result) // adds the result to the DB
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 	w.WriteHeader(http.StatusCreated)
-	w.Write([]byte(id))
-	return
+	_, _ = w.Write([]byte(id))
 }
 
 // UpdateResult PUT /
@@ -99,7 +96,7 @@ func (c *Controller) UpdateResult(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 	}
-	err = c.Repository.Update(result) // updates the result in the DB
+	err = c.repository.Update(result) // updates the result in the DB
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		return
@@ -107,7 +104,6 @@ func (c *Controller) UpdateResult(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 	w.Header().Set("Access-Control-Allow-Origin", "*")
 	w.WriteHeader(http.StatusOK)
-	return
 }
 
 // DeleteResult DELETE /
@@ -115,12 +111,11 @@ func (c *Controller) DeleteResult(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 
 	id := vars["id"]
-	if err := c.Repository.DeleteByID(id); err != nil { // delete a result by id
+	if err := c.repository.DeleteByID(id); err != nil { // delete a result by id
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 	w.Header().Set("Access-Control-Allow-Origin", "*")
 	w.WriteHeader(http.StatusNoContent)
-	return
 }

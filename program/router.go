@@ -8,7 +8,7 @@ import (
 	"github.com/gorilla/mux"
 )
 
-var controller = &Controller{Repository: PRepository{}}
+var controller = &Controller{repository: PRepository{}}
 
 // Route defines a route
 type Route struct {

@@ -1,6 +1,8 @@
 <template>
   <v-card
       outlined
+      max-width="700"
+      class="mx-auto"
   >
     <v-card-title>
       {{ program.title.substring(0, 30) }}
@@ -13,7 +15,7 @@
       <v-btn
           color="success"
           outlined
-          :to="program-details"
+          :to="programDetails"
       >
         <v-icon>fa-glasses</v-icon>
         Details

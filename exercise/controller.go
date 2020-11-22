@@ -11,19 +11,18 @@ import (
 
 //Controller ...
 type Controller struct {
-	Repository ERepository
+	repository ERepository
 }
 
 // Index GET /
 func (c *Controller) Index(w http.ResponseWriter, r *http.Request) {
-	exercises := c.Repository.Get() // list of all exercises
+	exercises := c.repository.Get() // list of all exercises
 	log.Info(exercises)
 	data, _ := json.Marshal(exercises)
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 	w.Header().Set("Access-Control-Allow-Origin", "*")
 	w.WriteHeader(http.StatusOK)
-	w.Write(data)
-	return
+	_, _ = w.Write(data)
 }
 
 // GetExercise GET /{id}
@@ -33,7 +32,7 @@ func (c *Controller) GetExercise(w http.ResponseWriter, r *http.Request) {
 	var err error
 
 	id := vars["id"]
-	if exercise, err = c.Repository.GetByID(id); err != nil { // get an exercise by id
+	if exercise, err = c.repository.GetByID(id); err != nil { // get an exercise by id
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
@@ -66,15 +65,14 @@ func (c *Controller) AddExercise(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 	}
-	id, err := c.Repository.Create(exercise) // adds the exercise to the DB
+	id, err := c.repository.Create(exercise) // adds the exercise to the DB
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 	w.WriteHeader(http.StatusCreated)
-	w.Write([]byte(id))
-	return
+	_, _ = w.Write([]byte(id))
 }
 
 // UpdateExercise PUT /
@@ -98,7 +96,7 @@ func (c *Controller) UpdateExercise(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 	}
-	err = c.Repository.Update(exercise) // updates the exercise in the DB
+	err = c.repository.Update(exercise) // updates the exercise in the DB
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		return
@@ -114,12 +112,11 @@ func (c *Controller) DeleteExercise(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 
 	id := vars["id"]
-	if err := c.Repository.DeleteByID(id); err != nil { // delete a exercise by id
+	if err := c.repository.DeleteByID(id); err != nil { // delete a exercise by id
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 	w.Header().Set("Access-Control-Allow-Origin", "*")
 	w.WriteHeader(http.StatusNoContent)
-	return
 }

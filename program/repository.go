@@ -66,7 +66,7 @@ func (r PRepository) GetByText(text string) bool {
 	result := dbConn.Where("text = ?", text).First(&program)
 
 	if result.Error != nil {
-		log.Errorf("Can't find the program with text %s\n%s", text, result.Error)
+		log.Errorf("Can't find the program with text %s\n%v", text, result.Error)
 		return false
 	}
 
@@ -79,7 +79,7 @@ func (r PRepository) GetByID(id string) (Program, error) {
 	result := dbConn.First(&program, "id = ?", id)
 
 	if result.Error != nil {
-		log.Errorf("Can't create program %v\n%s", program, result.Error)
+		log.Errorf("Can't create program %v\n%v", program, result.Error)
 		return Program{}, result.Error
 	}
 
@@ -91,7 +91,7 @@ func (r PRepository) Create(program Program) (string, error) {
 	result := dbConn.Create(&program)
 
 	if result.Error != nil {
-		log.Errorf("Can't create program %v\n%s", program, result.Error)
+		log.Errorf("Can't create program %v\n%v", program, result.Error)
 		return "", result.Error
 	}
 
@@ -103,7 +103,7 @@ func (r PRepository) CreateAll(programs []Program) bool {
 	result := dbConn.Create(&programs)
 
 	if result.Error != nil {
-		log.Errorf("Can't create program %v\n%s", programs, result.Error)
+		log.Errorf("Can't create program %v\n%v", programs, result.Error)
 		return false
 	}
 
@@ -115,7 +115,7 @@ func (r PRepository) Update(program Program) error {
 	result := dbConn.Model(&program).Updates(program)
 
 	if result.Error != nil {
-		log.Error("Can't update program with values %v\n", program, result.Error)
+		log.Errorf("Can't update program with values %v\n%v", program, result.Error)
 		return result.Error
 	}
 	return nil
@@ -126,7 +126,7 @@ func (r PRepository) DeleteByID(id string) error {
 	result := dbConn.Delete(&Program{}, id)
 
 	if result.Error != nil {
-		log.Error("Can't delete program with id %s\n", id, result.Error)
+		log.Errorf("Can't delete program with id %s\n%v", id, result.Error)
 		return result.Error
 	}
 
