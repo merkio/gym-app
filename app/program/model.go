@@ -1,7 +1,7 @@
 package program
 
 import (
-	"gym-app/exercise"
+	"gym-app/app/exercise"
 	"time"
 
 	"gorm.io/gorm"

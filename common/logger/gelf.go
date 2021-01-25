@@ -83,10 +83,10 @@ func (f GelFormatter) Format(entry *logrus.Entry) ([]byte, error) {
 }
 
 func toSyslogLevel(level logrus.Level) syslog.Priority {
-	syslog, ok := levelMap[level]
+	priority, ok := levelMap[level]
 
 	if ok {
-		return syslog
+		return priority
 	}
 	return DefaultLevel
 }

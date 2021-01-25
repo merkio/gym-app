@@ -56,12 +56,12 @@ func RequestLogger(inner http.Handler, name string) http.Handler {
 
 // AppLogger set app name and version to the log
 func AppLogger(appName string, appVersion string) *logrus.Entry {
-	log := NewLogger().
+	entry := NewLogger().
 		WithFields(logrus.Fields{
 			"service":     appName,
 			"app_version": appVersion,
 		})
-	return log
+	return entry
 }
 
 func readEnvConfig() {

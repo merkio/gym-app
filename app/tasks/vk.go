@@ -2,7 +2,7 @@ package tasks
 
 import (
 	config "gym-app/app-config"
-	"gym-app/program"
+	"gym-app/app/program"
 	"time"
 
 	"github.com/go-vk-api/vk"
@@ -27,7 +27,7 @@ func CollectVkMessages() {
 		log.Error(err) // just example
 	}
 
-	s.Every().Minute(7).Hour(19).Do(vkCollectorTask, "", 10, 0)
+	s.Every().Minute(29).Hour(19).Do(vkCollectorTask, "", 10, 0)
 }
 
 func vkCollectorTask(query string, count, offset int) {
