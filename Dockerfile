@@ -19,9 +19,7 @@ RUN CGO_ENABLED=0 go test -v
 RUN go build -o ./out/app .
 
 # Start fresh from a smaller image
-FROM alpine:3.9 
-RUN apk add ca-certificates
-
+FROM alpine:3.9
 
 COPY --from=build_base /tmp/app/out/app /app/app
 
