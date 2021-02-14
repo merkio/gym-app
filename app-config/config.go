@@ -34,7 +34,7 @@ type DataConnectionConf struct {
 }
 
 type AppConf struct {
-	AppVersion string `default:"v1.0.0" envconfig:"APP_VERSION"`
+	AppVersion string `default:"v0.0.2" envconfig:"APP_VERSION"`
 }
 
 type HealthConf struct {
