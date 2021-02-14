@@ -27,14 +27,14 @@ func CollectVkMessages() {
 		log.Error(err) // just example
 	}
 
-	s.Every().Minute(29).Hour(19).Do(vkCollectorTask, "", 10, 0)
+	s.Every().Minute(30).Hour(10).Do(vkCollectorTask, "", 10, 0)
 }
 
 func vkCollectorTask(query string, count, offset int) {
 	client := newClient()
 	response := WallResponseData{}
-
-	for i := offset; i < offset+100; i = i + count {
+	countErrors := 0
+	for i := offset; i < offset; i = i + count {
 		time.Sleep(20 * time.Second)
 		log.Infof("Request with count %v and offset %v", count, i)
 		if err := client.CallMethod("wall.get", vk.RequestParams{
@@ -52,6 +52,7 @@ func vkCollectorTask(query string, count, offset int) {
 		for _, post := range response.Items {
 			if programRepo.GetByText(post.Text) {
 				log.Errorf("Program already exist for date %v\n%s", post.ID, time.Unix(post.Date, 0).String())
+				countErrors += 1
 				continue
 			}
 			str, err := programRepo.Create(program.Program{
@@ -64,6 +65,9 @@ func vkCollectorTask(query string, count, offset int) {
 				log.Error("Error during save the program", err)
 			}
 			log.Infof("Saved new program with ID %s and Date %s", str, time.Unix(post.Date, 0).String())
+		}
+		if countErrors > 20 {
+			return
 		}
 	}
 }
