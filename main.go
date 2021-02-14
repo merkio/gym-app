@@ -1,14 +1,13 @@
 package main
 
 import (
-	"gym-app/app/tasks"
-	"log"
-	"net/http"
-
 	config "gym-app/app-config"
 	"gym-app/app/exercise"
 	"gym-app/app/program"
 	"gym-app/app/result"
+	"gym-app/app/tasks"
+	"log"
+	"net/http"
 
 	"github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
@@ -22,7 +21,8 @@ func main() {
 	router.PathPrefix("/.well-known/acme-challenge/").Handler(http.FileServer(http.Dir("./certbot/")))
 
 	db := exercise.GetDB(config.DataConnectionConfig, config.App)
-	err := db.AutoMigrate(&result.Result{}, &exercise.Exercise{}, &program.Program{})
+
+	err := db.AutoMigrate(result.Result{}, exercise.Exercise{}, program.Program{})
 	if err != nil {
 		log.Fatal(err)
 	}

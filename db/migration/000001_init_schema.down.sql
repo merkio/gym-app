@@ -1,2 +1,0 @@
-DROP EXTENSION "uuid-ossp" SCHEMA gym;
-DROP SCHEMA gym;

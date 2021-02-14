@@ -56,7 +56,7 @@ var routes = Routes{
 
 //NewSubRouter configures a new router to the API
 func NewSubRouter(r *mux.Router) *mux.Router {
-	router := r.PathPrefix("/api/result").Subrouter()
+	router := r.PathPrefix("/api/results").Subrouter()
 
 	for _, route := range routes {
 		var handler http.Handler
