@@ -21,20 +21,25 @@ func newClient() *vk.Client {
 
 // CollectVkMessages run task to collect messages from vk
 func CollectVkMessages() {
+	log.Info("Start vk task to collect info")
 	s, err := scheduler.NewScheduler(1)
 
 	if err != nil {
 		log.Error(err) // just example
 	}
 
-	s.Every().Hour(1).Do(vkCollectorTask, "", 10, 0)
+	s.Every().Hour(23).Do(vkCollectorTask, "", 10, 0)
+	ch := make(chan interface{})
+	<- ch
 }
 
 func vkCollectorTask(query string, count, offset int) {
+	log.Info("Collecting data from vk")
 	client := newClient()
 	response := WallResponseData{}
 	countErrors := 0
-	for i := offset; i < offset; i = i + count {
+	i := 0
+	for {
 		time.Sleep(20 * time.Second)
 		log.Infof("Request with count %v and offset %v", count, i)
 		if err := client.CallMethod("wall.get", vk.RequestParams{
@@ -66,6 +71,7 @@ func vkCollectorTask(query string, count, offset int) {
 			}
 			log.Infof("Saved new program with ID %s and Date %s", str, time.Unix(post.Date, 0).String())
 		}
+		i = i + count
 		if countErrors > 20 {
 			return
 		}

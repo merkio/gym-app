@@ -32,7 +32,7 @@ func main() {
 	allowedMethods := handlers.AllowedMethods([]string{"GET", "POST", "DELETE", "PUT"})
 
 	// Run vk tasks
-	tasks.CollectVkMessages()
+	go tasks.CollectVkMessages()
 
 	// launch server with CORS validations
 	log.Print("Starting server on port :8080")
