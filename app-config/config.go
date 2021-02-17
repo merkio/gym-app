@@ -17,10 +17,10 @@ var AppConfig AppConf
 var HealthConfig HealthConf
 
 type VkConnectionConf struct {
-	ClientID string `default:"" envconfig:"VK_CLIENT_ID"`
-	SecretKey string `default:"" envconfig:"VK_SECRET_KEY"`
+	ClientID    string `default:"" envconfig:"VK_CLIENT_ID"`
+	SecretKey   string `default:"" envconfig:"VK_SECRET_KEY"`
 	AccessToken string `default:"" envconfig:"VK_ACCESS_TOKEN"`
-	GroupID string `default:"" envconfig:"VK_GROUP_ID"`
+	GroupID     string `default:"" envconfig:"VK_GROUP_ID"`
 }
 
 type DataConnectionConf struct {

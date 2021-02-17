@@ -28,9 +28,7 @@ func CollectVkMessages() {
 		log.Error(err) // just example
 	}
 
-	s.Every().Hour(23).Do(vkCollectorTask, "", 10, 0)
-	ch := make(chan interface{})
-	<- ch
+	s.Every().Hour(7).Do(vkCollectorTask, "", 10, 0)
 }
 
 func vkCollectorTask(query string, count, offset int) {
@@ -72,7 +70,7 @@ func vkCollectorTask(query string, count, offset int) {
 			log.Infof("Saved new program with ID %s and Date %s", str, time.Unix(post.Date, 0).String())
 		}
 		i = i + count
-		if countErrors > 20 {
+		if countErrors > 100 {
 			return
 		}
 	}
