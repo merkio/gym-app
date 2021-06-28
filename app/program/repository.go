@@ -115,7 +115,7 @@ func (r PRepository) Search(params model.SearchRequest) ([]model.Program, error)
 
 	query := r.db.Limit(params.Limit)
 
-	query = utils.CreateSearchQuery(&params, query)
+	query = utils.CreateSearchProgramQuery(&params, query)
 	r.log.WithField("params", params).Info("Search programs between dates")
 
 	result := query.Find(&programs)

@@ -6,7 +6,7 @@ import (
 	"gym-app/app/model"
 )
 
-func CreateSearchQuery(params *model.SearchRequest, tx *gorm.DB) *gorm.DB {
+func CreateSearchProgramQuery(params *model.SearchRequest, tx *gorm.DB) *gorm.DB {
 	if params.SortBy == "" {
 		params.SortBy = "date"
 		params.Order = "asc"
@@ -24,5 +24,6 @@ func CreateSearchQuery(params *model.SearchRequest, tx *gorm.DB) *gorm.DB {
 		text := "%"+params.Text+"%"
 		tx.Where("text LIKE ?", text)
 	}
+	tx.Order(fmt.Sprintf("%s %s", params.SortBy, params.Order))
 	return tx
 }
