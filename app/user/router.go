@@ -1,6 +1,8 @@
 package user
 
 import (
+	config "gym-app/app-config"
+	"gym-app/common/db"
 	"net/http"
 
 	"gym-app/common/logger"
@@ -8,7 +10,14 @@ import (
 	"github.com/gorilla/mux"
 )
 
-var controller = &Controller{repository: URepository{}}
+var log = logger.NewLogger()
+var controller = &Controller{
+	repository: NewURepository(
+		db.GetDB(config.DataConnectionConfig),
+		log,
+	),
+	log: log,
+}
 
 // Route defines a route
 type Route struct {

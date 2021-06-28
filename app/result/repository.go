@@ -101,7 +101,9 @@ func (r RRepository) Update(result Result) error {
 	res := dbConn.Model(&result).Updates(result)
 
 	if res.Error != nil {
-		log.Error("Can't update result with values %v\n%v", result, res.Error)
+		log.WithField("err", res.Error).
+			WithField("values", result).
+			Error("Can't update result with values")
 		return res.Error
 	}
 	return nil
@@ -112,7 +114,9 @@ func (r RRepository) DeleteByID(id string) error {
 	result := dbConn.Delete(&Result{}, id)
 
 	if result.Error != nil {
-		log.Error("Can't delete result with id %s\n%v", id, result.Error)
+		log.WithField("err", result.Error).
+			WithField("id", id).
+			Error("Can't delete result with id")
 		return result.Error
 	}
 

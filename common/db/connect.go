@@ -3,6 +3,7 @@ package db
 import (
 	"errors"
 	"fmt"
+	config "gym-app/app-config"
 	"gym-app/common/logger"
 	"strconv"
 
@@ -35,6 +36,21 @@ var DBConfig Config
 var log = logger.NewLogger()
 
 const dbArgsFmt = "host=%s port=%s user=%s password=%s dbname=%s sslmode=%s search_path=%s"
+
+// GetDB connection to the db
+func GetDB(conf config.DataConnectionConf) *gorm.DB {
+	dbConn := GetDBInstance(&Specification{
+		Port:       conf.PostgresPort,
+		Hostname:   conf.PostgresHostname,
+		User:       conf.PostgresUser,
+		Password:   conf.PostgresPassword,
+		DbName:     conf.PostgresDBName,
+		SSLMode:    conf.PostgresSSLMode,
+		SearchPath: conf.PostgresSchema,
+	})
+
+	return dbConn
+}
 
 //GetDBInstance connect to the database
 func GetDBInstance(dbs *Specification) *gorm.DB {

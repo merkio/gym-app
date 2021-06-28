@@ -2,6 +2,7 @@ package tasks
 
 import (
 	config "gym-app/app-config"
+	"gym-app/app/model"
 	"gym-app/app/program"
 	"time"
 
@@ -58,7 +59,7 @@ func vkCollectorTask(query string, count, offset int) {
 				countErrors += 1
 				continue
 			}
-			str, err := programRepo.Create(program.Program{
+			str, err := programRepo.Create(model.Program{
 				Text:    post.Text,
 				DateInt: post.Date,
 				Tags:    "raw,post",
@@ -67,7 +68,7 @@ func vkCollectorTask(query string, count, offset int) {
 			if err != nil {
 				log.Error("Error during save the program", err)
 			}
-			log.Infof("Saved new program with ID %s and Date %s", str, time.Unix(post.Date, 0).String())
+			log.Infof("Saved new program with ID %s and StartDate %s", str, time.Unix(post.Date, 0).String())
 		}
 		i = i + count
 		if countErrors > 100 {

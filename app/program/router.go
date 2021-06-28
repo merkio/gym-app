@@ -8,7 +8,7 @@ import (
 	"github.com/gorilla/mux"
 )
 
-var controller = &Controller{repository: PRepository{}}
+var controller = NewController(logger.NewLogger())
 
 // Route defines a route
 type Route struct {
@@ -41,6 +41,12 @@ var routes = Routes{
 		controller.AddProgram,
 	},
 	Route{
+		"SearchPrograms",
+		"POST",
+		"/search",
+		controller.Search,
+	},
+	Route{
 		"UpdateProgram",
 		"PUT",
 		"",
@@ -56,7 +62,7 @@ var routes = Routes{
 
 //NewSubRouter configures a new router to the API
 func NewSubRouter(r *mux.Router) *mux.Router {
-	router := r.PathPrefix("/api/programs").Subrouter()
+	router := r.PathPrefix("/api/program").Subrouter()
 
 	for _, route := range routes {
 		var handler http.Handler

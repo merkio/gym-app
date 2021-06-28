@@ -1,72 +1,57 @@
 package program
 
 import (
-	config "gym-app/app-config"
-	"gym-app/common/db"
-	loggerWrap "gym-app/common/logger"
-	repo "gym-app/repository"
-
 	"github.com/sirupsen/logrus"
 	"gorm.io/gorm"
+	"gym-app/app/model"
+	"gym-app/common/utils"
+	repo "gym-app/repository"
 )
 
 // Repository programs repository
 type Repository interface {
 	repo.BaseRepository
-	CreateAll(programs []Program) bool
-	GetByID(id string) (Program, error)
-	Get() []Program
+	CreateAll(programs []model.Program) bool
+	GetByID(id string) (model.Program, error)
+	Get() []model.Program
 	GetByText(text string) bool
+	Search(request model.SearchRequest)
 }
 
 // PRepository instance of PRepository
 type PRepository struct {
 	Repository
+	db  *gorm.DB
+	log *logrus.Logger
 }
 
-// GetDB connection to the db
-func GetDB(conf config.DataConnectionConf, app string) *gorm.DB {
-	dbConn := db.GetDBInstance(&db.Specification{
-		Port:       conf.PostgresPort,
-		Hostname:   conf.PostgresHostname,
-		User:       conf.PostgresUser,
-		Password:   conf.PostgresPassword,
-		DbName:     conf.PostgresDBName,
-		SSLMode:    conf.PostgresSSLMode,
-		SearchPath: conf.PostgresSchema,
-	})
-
-	return dbConn
-}
-
-var dbConn *gorm.DB
-var log *logrus.Logger
-
-func init() {
-	dbConn = GetDB(config.DataConnectionConfig, config.App)
-	log = loggerWrap.NewLogger()
+func NewPRepository(conn *gorm.DB, logger *logrus.Logger) PRepository {
+	return PRepository{
+		db:  conn,
+		log: logger,
+	}
 }
 
 // Get returns the list of Programs
-func (r PRepository) Get() []Program {
-	programs := make([]Program, 30)
-	result := dbConn.Limit(20).Find(&programs)
+func (r PRepository) Get() []model.Program {
+	programs := make([]model.Program, 30)
+	result := r.db.Limit(30).Find(&programs)
 
 	if result.Error != nil {
-		log.Error("Can't get programs from dbConn.\n", result.Error)
+		r.log.Error("Can't get programs from db.\n", result.Error)
 	}
 
-	log.Infof("Found %d amount of programs", result.RowsAffected)
+	r.log.Infof("Found %d amount of programs", result.RowsAffected)
 	return programs
 }
 
 // GetByText get program by text
 func (r PRepository) GetByText(text string) bool {
-	program := Program{}
-	result := dbConn.Where("text = ?", text).First(&program)
+	program := model.Program{}
+	result := r.db.Where("text = ?", text).First(&program)
 
 	if result.Error != nil {
-		log.Errorf("Can't find the program with text %s\n%v", text, result.Error)
+		r.log.Errorf("Can't find the program with text %s\n%v", text, result.Error)
 		return false
 	}
 
@@ -74,24 +59,24 @@ func (r PRepository) GetByText(text string) bool {
 }
 
 // GetByID return the Program with id
-func (r PRepository) GetByID(id string) (Program, error) {
-	program := Program{}
-	result := dbConn.First(&program, "id = ?", id)
+func (r PRepository) GetByID(id string) (model.Program, error) {
+	program := model.Program{}
+	result := r.db.First(&program, "id = ?", id)
 
 	if result.Error != nil {
-		log.Errorf("Can't create program %v\n%v", program, result.Error)
-		return Program{}, result.Error
+		r.log.Errorf("Can't create program %v\n%v", program, result.Error)
+		return model.Program{}, result.Error
 	}
 
 	return program, nil
 }
 
 // Create inserts a Program into DB
-func (r PRepository) Create(program Program) (string, error) {
-	result := dbConn.Create(&program)
+func (r PRepository) Create(program model.Program) (string, error) {
+	result := r.db.Create(&program)
 
 	if result.Error != nil {
-		log.Errorf("Can't create program %v\n%v", program, result.Error)
+		r.log.Errorf("Can't create program %v\n%v", program, result.Error)
 		return "", result.Error
 	}
 
@@ -99,11 +84,11 @@ func (r PRepository) Create(program Program) (string, error) {
 }
 
 // CreateAll inserts an Programs into DB
-func (r PRepository) CreateAll(programs []Program) bool {
-	result := dbConn.Create(&programs)
+func (r PRepository) CreateAll(programs []model.Program) bool {
+	result := r.db.Create(&programs)
 
 	if result.Error != nil {
-		log.Errorf("Can't create program %v\n%v", programs, result.Error)
+		r.log.Errorf("Can't create program %v\n%v", programs, result.Error)
 		return false
 	}
 
@@ -111,22 +96,43 @@ func (r PRepository) CreateAll(programs []Program) bool {
 }
 
 // Update updates an Program in the DB (not used for now)
-func (r PRepository) Update(program Program) error {
-	result := dbConn.Model(&program).Updates(program)
+func (r PRepository) Update(program model.Program) error {
+	result := r.db.Model(&program).Updates(program)
 
 	if result.Error != nil {
-		log.Errorf("Can't update program with values %v\n%v", program, result.Error)
+		r.log.Errorf("Can't update program with values %v\n%v", program, result.Error)
 		return result.Error
 	}
 	return nil
 }
 
-// DeleteByID deletes an Program (not used for now)
-func (r PRepository) DeleteByID(id string) error {
-	result := dbConn.Delete(&Program{}, id)
+// Search with params
+func (r PRepository) Search(params model.SearchRequest) ([]model.Program, error) {
+	if params.Limit == 0 {
+		params.Limit = 20
+	}
+	programs := make([]model.Program, params.Limit)
+
+	query := r.db.Limit(params.Limit)
+
+	query = utils.CreateSearchQuery(&params, query)
+	r.log.WithField("params", params).Info("Search programs between dates")
+
+	result := query.Find(&programs)
 
 	if result.Error != nil {
-		log.Errorf("Can't delete program with id %s\n%v", id, result.Error)
+		r.log.Errorf("Can't find program with params %v\n%v", params, result.Error)
+		return programs, result.Error
+	}
+	return programs, nil
+}
+
+// DeleteByID deletes an Program (not used for now)
+func (r PRepository) DeleteByID(id string) error {
+	result := r.db.Delete(&model.Program{}, id)
+
+	if result.Error != nil {
+		r.log.Errorf("Can't delete program with id %s\n%v", id, result.Error)
 		return result.Error
 	}
 

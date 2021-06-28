@@ -2,6 +2,7 @@ package exercise
 
 import (
 	"encoding/json"
+	"gym-app/app/model"
 	"io"
 	"io/ioutil"
 	"net/http"
@@ -28,7 +29,7 @@ func (c *Controller) Index(w http.ResponseWriter, r *http.Request) {
 // GetExercise GET /{id}
 func (c *Controller) GetExercise(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
-	var exercise Exercise
+	var exercise model.Exercise
 	var err error
 
 	id := vars["id"]
@@ -47,7 +48,7 @@ func (c *Controller) GetExercise(w http.ResponseWriter, r *http.Request) {
 
 // AddExercise POST /
 func (c *Controller) AddExercise(w http.ResponseWriter, r *http.Request) {
-	var exercise Exercise
+	var exercise model.Exercise
 	body, err := ioutil.ReadAll(io.LimitReader(r.Body, 1048576)) // read the body of the request
 	if err != nil {
 		log.Error("Error AddExercise", err)
@@ -77,7 +78,7 @@ func (c *Controller) AddExercise(w http.ResponseWriter, r *http.Request) {
 
 // UpdateExercise PUT /
 func (c *Controller) UpdateExercise(w http.ResponseWriter, r *http.Request) {
-	var exercise Exercise
+	var exercise model.Exercise
 	body, err := ioutil.ReadAll(io.LimitReader(r.Body, 1048576)) // read the body of the request
 	if err != nil {
 		log.Error("Error UpdateExercise", err)
