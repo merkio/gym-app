@@ -2,6 +2,7 @@ package user
 
 import (
 	"encoding/json"
+	"github.com/sirupsen/logrus"
 	"io"
 	"io/ioutil"
 	"net/http"
@@ -12,12 +13,13 @@ import (
 //Controller ...
 type Controller struct {
 	repository URepository
+	log *logrus.Logger
 }
 
 // Index GET /
 func (c *Controller) Index(w http.ResponseWriter, r *http.Request) {
 	users := c.repository.Get() // list of all users
-	log.Info(users)
+	c.log.Info(users)
 	data, _ := json.Marshal(users)
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 	w.Header().Set("Access-Control-Allow-Origin", "*")
@@ -49,17 +51,17 @@ func (c *Controller) AddUser(w http.ResponseWriter, r *http.Request) {
 	var user User
 	body, err := ioutil.ReadAll(io.LimitReader(r.Body, 1048576)) // read the body of the request
 	if err != nil {
-		log.Error("Error AddUser", err)
+		c.log.Error("Error AddUser", err)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 	if err := r.Body.Close(); err != nil {
-		log.Error("Error AddUser", err)
+		c.log.Error("Error AddUser", err)
 	}
 	if err := json.Unmarshal(body, &user); err != nil { // unmarshal body contents as a type Candidate
 		w.WriteHeader(422) // unprocessable entity
 		if err := json.NewEncoder(w).Encode(err); err != nil {
-			log.Error("Error AddUser unmarshalling data", err)
+			c.log.Error("Error AddUser unmarshalling data", err)
 			w.WriteHeader(http.StatusInternalServerError)
 			return
 		}
@@ -79,18 +81,18 @@ func (c *Controller) UpdateUser(w http.ResponseWriter, r *http.Request) {
 	var user User
 	body, err := ioutil.ReadAll(io.LimitReader(r.Body, 1048576)) // read the body of the request
 	if err != nil {
-		log.Error("Error UpdateUser", err)
+		c.log.Error("Error UpdateUser", err)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 	if err := r.Body.Close(); err != nil {
-		log.Error("Error UpdateUser", err)
+		c.log.Error("Error UpdateUser", err)
 	}
 	if err := json.Unmarshal(body, &user); err != nil { // unmarshal body contents as a type Candidate
 		w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 		w.WriteHeader(422) // unprocessable entity
 		if err := json.NewEncoder(w).Encode(err); err != nil {
-			log.Error("Error UpdateUser unmarshalling data", err)
+			c.log.Error("Error UpdateUser unmarshalling data", err)
 			w.WriteHeader(http.StatusInternalServerError)
 			return
 		}

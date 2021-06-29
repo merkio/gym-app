@@ -2,6 +2,7 @@ package exercise
 
 import (
 	config "gym-app/app-config"
+	"gym-app/app/model"
 	"gym-app/common/db"
 	loggerWrap "gym-app/common/logger"
 	repo "gym-app/repository"
@@ -13,9 +14,9 @@ import (
 // Repository exercise repository
 type Repository interface {
 	repo.BaseRepository
-	CreateAll(exercises []Exercise) bool
-	GetByID(id string) (Exercise, error)
-	Get() []Exercise
+	CreateAll(exercises []model.Exercise) bool
+	GetByID(id string) (model.Exercise, error)
+	Get() []model.Exercise
 }
 
 // ERepository instance of Repository
@@ -47,8 +48,8 @@ func init() {
 }
 
 // Get returns the list of Exercises
-func (r ERepository) Get() []Exercise {
-	exercises := make([]Exercise, 30)
+func (r ERepository) Get() []model.Exercise {
+	exercises := make([]model.Exercise, 30)
 	result := dbConn.Find(&exercises)
 
 	if result.Error != nil {
@@ -60,20 +61,20 @@ func (r ERepository) Get() []Exercise {
 }
 
 // GetByID return the Exercise with id
-func (r ERepository) GetByID(id string) (Exercise, error) {
-	exercise := Exercise{}
+func (r ERepository) GetByID(id string) (model.Exercise, error) {
+	exercise := model.Exercise{}
 	result := dbConn.First(&exercise, "id = ?", id)
 
 	if result.Error != nil {
 		log.Errorf("Can't create exercise %v\n%v", exercise, result.Error)
-		return Exercise{}, result.Error
+		return model.Exercise{}, result.Error
 	}
 
 	return exercise, nil
 }
 
 // Create inserts an Exercise into DB
-func (r ERepository) Create(exercise Exercise) (string, error) {
+func (r ERepository) Create(exercise model.Exercise) (string, error) {
 	result := dbConn.Create(&exercise)
 
 	if result.Error != nil {
@@ -85,7 +86,7 @@ func (r ERepository) Create(exercise Exercise) (string, error) {
 }
 
 // CreateAll inserts an Exercises into DB
-func (r ERepository) CreateAll(exercises []Exercise) bool {
+func (r ERepository) CreateAll(exercises []model.Exercise) bool {
 	result := dbConn.Create(&exercises)
 
 	if result.Error != nil {
@@ -97,7 +98,7 @@ func (r ERepository) CreateAll(exercises []Exercise) bool {
 }
 
 // Update updates an Exercise in the DB (not used for now)
-func (r ERepository) Update(exercise Exercise) error {
+func (r ERepository) Update(exercise model.Exercise) error {
 	result := dbConn.Model(&exercise).Updates(exercise)
 
 	if result.Error != nil {
@@ -109,7 +110,7 @@ func (r ERepository) Update(exercise Exercise) error {
 
 // DeleteByID deletes an Exercise (not used for now)
 func (r ERepository) DeleteByID(id string) error {
-	result := dbConn.Delete(&Exercise{}, id)
+	result := dbConn.Delete(&model.Exercise{}, id)
 
 	if result.Error != nil {
 		log.Errorf("Can't delete exercise with id %s\n%v", id, result.Error)
