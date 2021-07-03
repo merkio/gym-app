@@ -27,14 +27,14 @@ type DataConnectionConf struct {
 	PostgresPort     string `default:"5432" envconfig:"POSTGRES_PORT"`
 	PostgresHostname string `default:"127.0.0.1" envconfig:"POSTGRES_HOST"`
 	PostgresUser     string `default:"postgres" envconfig:"POSTGRES_USER"`
-	PostgresPassword string `default:"" envconfig:"POSTGRES_PASSWORD"`
+	PostgresPassword string `default:"postgres" envconfig:"POSTGRES_PASSWORD"`
 	PostgresDBName   string `default:"postgres" envconfig:"POSTGRES_DB"`
 	PostgresSSLMode  string `default:"disable" envconfig:"POSTGRES_SSL_MODE"`
 	PostgresSchema   string `default:"public" envconfig:"POSTGRES_SCHEMA"`
 }
 
 type AppConf struct {
-	AppVersion string `default:"v0.0.2" envconfig:"APP_VERSION"`
+	AppVersion string `default:"v0.0.3" envconfig:"APP_VERSION"`
 }
 
 type HealthConf struct {

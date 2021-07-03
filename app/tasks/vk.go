@@ -4,6 +4,7 @@ import (
 	config "gym-app/app-config"
 	"gym-app/app/model"
 	"gym-app/app/program"
+	"gym-app/common/db"
 	"time"
 
 	"github.com/go-vk-api/vk"
@@ -22,7 +23,7 @@ func newClient() *vk.Client {
 
 // CollectVkMessages run task to collect messages from vk
 func CollectVkMessages() {
-	log.Info("Start vk task to collect info")
+	log.Info("Start vk task")
 	s, err := scheduler.NewScheduler(1)
 
 	if err != nil {
@@ -49,7 +50,7 @@ func vkCollectorTask(query string, count, offset int) {
 		}, &response); err != nil {
 			log.Error("Request to the vk api failed", err)
 		}
-		programRepo := program.PRepository{}
+		programRepo := program.NewPRepository(db.GetDB(config.DataConnectionConfig), log)
 		if len(response.Items) <= 0 {
 			return
 		}
