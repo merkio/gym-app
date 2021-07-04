@@ -21,6 +21,8 @@ type VkConnectionConf struct {
 	SecretKey   string `default:"" envconfig:"VK_SECRET_KEY"`
 	AccessToken string `default:"" envconfig:"VK_ACCESS_TOKEN"`
 	GroupID     string `default:"" envconfig:"VK_GROUP_ID"`
+	Hour        int    `default:"7" envconfig:"VK_TASK_HOUR"`
+	Minute      int    `default:"0" envconfig:"VK_TASK_MINUTE"`
 }
 
 type DataConnectionConf struct {
