@@ -2,14 +2,12 @@ package utils
 
 import (
 	"fmt"
-	"gorm.io/gorm"
 	"gym-app/app/model"
+
+	"gorm.io/gorm"
 )
 
 func CreateSearchProgramQuery(params *model.SearchRequest, tx *gorm.DB) *gorm.DB {
-	if params.Limit == 0 {
-		params.Limit = 20
-	}
 	if params.SortBy == "" {
 		params.SortBy = "date"
 		params.Order = "asc"
@@ -24,9 +22,9 @@ func CreateSearchProgramQuery(params *model.SearchRequest, tx *gorm.DB) *gorm.DB
 		tx.Where("date <= ?", endDate)
 	}
 	if params.Text != "" {
-		text := "%"+params.Text+"%"
+		text := "%" + params.Text + "%"
 		tx.Where("text LIKE ?", text)
 	}
-	tx.Order(fmt.Sprintf("%s %s", params.SortBy, params.Order)).Limit(params.Limit)
+	tx.Order(fmt.Sprintf("%s %s", params.SortBy, params.Order))
 	return tx
 }

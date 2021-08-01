@@ -27,10 +27,10 @@ type VkConnectionConf struct {
 
 type DataConnectionConf struct {
 	PostgresPort     string `default:"5432" envconfig:"POSTGRES_PORT"`
-	PostgresHostname string `default:"127.0.0.1" envconfig:"POSTGRES_HOST"`
-	PostgresUser     string `default:"postgres" envconfig:"POSTGRES_USER"`
-	PostgresPassword string `default:"postgres" envconfig:"POSTGRES_PASSWORD"`
-	PostgresDBName   string `default:"postgres" envconfig:"POSTGRES_DB"`
+	PostgresHostname string `default:"192.168.1.100" envconfig:"POSTGRES_HOST"`
+	PostgresUser     string `default:"gym_app" envconfig:"POSTGRES_USER"`
+	PostgresPassword string `default:"JnMex#o&$7ZHuJ9MXbm" envconfig:"POSTGRES_PASSWORD"`
+	PostgresDBName   string `default:"gym_app" envconfig:"POSTGRES_DB"`
 	PostgresSSLMode  string `default:"disable" envconfig:"POSTGRES_SSL_MODE"`
 	PostgresSchema   string `default:"public" envconfig:"POSTGRES_SCHEMA"`
 }

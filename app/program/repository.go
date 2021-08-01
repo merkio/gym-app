@@ -1,11 +1,12 @@
 package program
 
 import (
-	"github.com/sirupsen/logrus"
-	"gorm.io/gorm"
 	"gym-app/app/model"
 	"gym-app/common/utils"
 	repo "gym-app/repository"
+
+	"github.com/sirupsen/logrus"
+	"gorm.io/gorm"
 )
 
 // Repository programs repository
@@ -110,7 +111,11 @@ func (r PRepository) Update(program model.Program) error {
 func (r PRepository) Search(params model.SearchRequest) ([]model.Program, error) {
 	programs := make([]model.Program, params.Limit)
 
-	query := utils.CreateSearchProgramQuery(&params, r.db)
+	if params.Limit == 0 {
+		params.Limit = 20
+	}
+	query := r.db.Limit(params.Limit)
+	utils.CreateSearchProgramQuery(&params, query)
 	r.log.WithField("params", params).Info("Search programs between dates")
 
 	result := query.Find(&programs)
