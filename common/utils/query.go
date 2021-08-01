@@ -7,6 +7,9 @@ import (
 )
 
 func CreateSearchProgramQuery(params *model.SearchRequest, tx *gorm.DB) *gorm.DB {
+	if params.Limit == 0 {
+		params.Limit = 20
+	}
 	if params.SortBy == "" {
 		params.SortBy = "date"
 		params.Order = "asc"
@@ -24,6 +27,6 @@ func CreateSearchProgramQuery(params *model.SearchRequest, tx *gorm.DB) *gorm.DB
 		text := "%"+params.Text+"%"
 		tx.Where("text LIKE ?", text)
 	}
-	tx.Order(fmt.Sprintf("%s %s", params.SortBy, params.Order))
+	tx.Order(fmt.Sprintf("%s %s", params.SortBy, params.Order)).Limit(params.Limit)
 	return tx
 }

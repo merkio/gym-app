@@ -108,14 +108,9 @@ func (r PRepository) Update(program model.Program) error {
 
 // Search with params
 func (r PRepository) Search(params model.SearchRequest) ([]model.Program, error) {
-	if params.Limit == 0 {
-		params.Limit = 20
-	}
 	programs := make([]model.Program, params.Limit)
 
-	query := r.db.Limit(params.Limit)
-
-	query = utils.CreateSearchProgramQuery(&params, query)
+	query := utils.CreateSearchProgramQuery(&params, r.db)
 	r.log.WithField("params", params).Info("Search programs between dates")
 
 	result := query.Find(&programs)

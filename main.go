@@ -30,7 +30,7 @@ func main() {
 
 	// these two lines are important in order to allow access from the front-end side to the methods
 	allowedOrigins := handlers.AllowedOrigins([]string{"*"})
-	allowedMethods := handlers.AllowedMethods([]string{"GET", "POST", "DELETE", "PUT"})
+	allowedMethods := handlers.AllowedMethods([]string{"GET", "POST", "DELETE", "PUT", "OPTIONS"})
 
 	// Run vk tasks
 	go tasks.CollectVkMessages()
