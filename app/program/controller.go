@@ -2,7 +2,6 @@ package program
 
 import (
 	"encoding/json"
-	"github.com/sirupsen/logrus"
 	config "gym-app/app-config"
 	"gym-app/app/model"
 	"gym-app/common/db"
@@ -10,13 +9,15 @@ import (
 	"io/ioutil"
 	"net/http"
 
+	"github.com/sirupsen/logrus"
+
 	"github.com/gorilla/mux"
 )
 
 //Controller ...
 type Controller struct {
 	repository PRepository
-	log *logrus.Logger
+	log        *logrus.Logger
 }
 
 func NewController(logger *logrus.Logger) Controller {
@@ -32,7 +33,7 @@ func (c *Controller) Index(w http.ResponseWriter, r *http.Request) {
 	c.log.Info("Found programs: ", len(programs))
 	data, _ := json.Marshal(programs)
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
-	w.Header().Set("Access-Control-Allow-Origin", "*")
+	addHeaders(w)
 	w.WriteHeader(http.StatusOK)
 	_, _ = w.Write(data)
 }
@@ -52,7 +53,7 @@ func (c *Controller) GetProgram(w http.ResponseWriter, r *http.Request) {
 	c.log.Info("Found program: ", program)
 	data, _ := json.Marshal(program)
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
-	w.Header().Set("Access-Control-Allow-Origin", "*")
+	addHeaders(w)
 	w.WriteHeader(http.StatusOK)
 	_, _ = w.Write(data)
 }
@@ -83,6 +84,7 @@ func (c *Controller) AddProgram(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
+	addHeaders(w)
 	w.WriteHeader(http.StatusCreated)
 	_, _ = w.Write([]byte(id))
 }
@@ -114,9 +116,8 @@ func (c *Controller) UpdateProgram(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
-	w.Header().Set("Access-Control-Allow-Origin", "*")
+	addHeaders(w)
 	w.WriteHeader(http.StatusOK)
-	return
 }
 
 // DeleteProgram DELETE /
@@ -129,12 +130,12 @@ func (c *Controller) DeleteProgram(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
-	w.Header().Set("Access-Control-Allow-Origin", "*")
+	addHeaders(w)
 	w.WriteHeader(http.StatusNoContent)
 }
 
 // Search POST /search
-func (c *Controller) Search(w http.ResponseWriter, r *http.Request)  {
+func (c *Controller) Search(w http.ResponseWriter, r *http.Request) {
 	var params model.SearchRequest
 	body, err := ioutil.ReadAll(io.LimitReader(r.Body, 1048576)) // read the body of the request
 	if err != nil {
@@ -160,9 +161,13 @@ func (c *Controller) Search(w http.ResponseWriter, r *http.Request)  {
 		return
 	}
 	data, _ := json.Marshal(programs)
-	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
-	w.Header().Set("Access-Control-Allow-Origin", "*")
+	addHeaders(w)
 	w.WriteHeader(http.StatusOK)
 	_, _ = w.Write(data)
-	return
+}
+
+func addHeaders(w http.ResponseWriter) {
+	w.Header().Set("Access-Control-Allow-Origin", "*")
+	w.Header().Set("Access-Control-Allow-Methods", "*")
+	w.Header().Set("Access-Control-Allow-Headers", "*")
 }
