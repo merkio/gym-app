@@ -1,60 +1,53 @@
 <template>
-  <v-app>
+  <v-app id="inspire">
     <v-app-bar
-      app
-      color="primary"
-      dark
+        app
+        color="white"
+        flat
     >
-      <div class="d-flex align-center">
-        <v-img
-          alt="Vuetify Logo"
-          class="shrink mr-2"
-          contain
-          src="https://cdn.vuetifyjs.com/images/logos/vuetify-logo-dark.png"
-          transition="scale-transition"
-          width="40"
-        />
+      <v-avatar
+          :color="$vuetify.breakpoint.smAndDown ? 'grey darken-1' : 'transparent'"
+          size="32"
+      ></v-avatar>
 
-        <v-img
-          alt="Vuetify Name"
-          class="shrink mt-1 hidden-sm-and-down"
-          contain
-          min-width="100"
-          src="https://cdn.vuetifyjs.com/images/logos/vuetify-name-dark.png"
-          width="100"
-        />
-      </div>
-
-      <v-spacer></v-spacer>
-
-      <v-btn
-        href="https://github.com/vuetifyjs/vuetify/releases/latest"
-        target="_blank"
-        text
+      <v-tabs
+          centered
+          class="ml-n9"
+          color="grey darken-1"
       >
-        <span class="mr-2">Latest Release</span>
-        <v-icon>mdi-open-in-new</v-icon>
-      </v-btn>
+        <v-tab
+            v-for="tab in tabs"
+            :key="tab.name"
+            :to="tab.to"
+        >
+          {{ tab.name }}
+        </v-tab>
+      </v-tabs>
+
+      <v-avatar
+          class="hidden-sm-and-down"
+          color="grey darken-1 shrink"
+          size="32"
+      ></v-avatar>
     </v-app-bar>
 
-    <v-main>
-      <HelloWorld/>
+    <v-main class="grey lighten-3">
+      <router-view>
+      </router-view>
     </v-main>
   </v-app>
 </template>
 
 <script>
-import HelloWorld from './components/HelloWorld';
-
 export default {
-  name: 'App',
-
-  components: {
-    HelloWorld,
-  },
-
   data: () => ({
-    //
-  }),
-};
+    tabs: [
+      {name: 'Dashboard', to: '/'},
+      {name: 'Workouts', to: '/workouts'},
+      {name: 'Exercises', to: '/exercises'},
+      {name: 'Results', to: '/results'},
+      {name: 'Profile', to: '/profile'},
+    ]
+  })
+}
 </script>
