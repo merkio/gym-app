@@ -2,8 +2,10 @@ package exercise
 
 import (
 	"encoding/json"
+	"github.com/sirupsen/logrus"
+	config "gym-app/app-config"
 	"gym-app/app/model"
-	"io"
+	"gym-app/common/db"
 	"io/ioutil"
 	"net/http"
 
@@ -13,12 +15,20 @@ import (
 //Controller ...
 type Controller struct {
 	repository ERepository
+	log        *logrus.Logger
+}
+
+func NewController(logger *logrus.Logger) Controller {
+	return Controller{
+		log:        logger,
+		repository: NewERepository(db.GetDB(config.DataConnectionConfig), logger),
+	}
 }
 
 // Index GET /
 func (c *Controller) Index(w http.ResponseWriter, r *http.Request) {
 	exercises := c.repository.Get() // list of all exercises
-	log.Info(exercises)
+	c.log.Info(exercises)
 	data, _ := json.Marshal(exercises)
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 	w.Header().Set("Access-Control-Allow-Origin", "*")
@@ -49,19 +59,19 @@ func (c *Controller) GetExercise(w http.ResponseWriter, r *http.Request) {
 // AddExercise POST /
 func (c *Controller) AddExercise(w http.ResponseWriter, r *http.Request) {
 	var exercise model.Exercise
-	body, err := ioutil.ReadAll(io.LimitReader(r.Body, 1048576)) // read the body of the request
+	body, err := ioutil.ReadAll(r.Body)
 	if err != nil {
-		log.Error("Error AddExercise", err)
+		c.log.Error("Error AddExercise", err)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 	if err := r.Body.Close(); err != nil {
-		log.Error("Error AddExercise", err)
+		c.log.Error("Error AddExercise", err)
 	}
 	if err := json.Unmarshal(body, &exercise); err != nil { // unmarshal body contents as a type Candidate
 		w.WriteHeader(422) // unprocessable entity
 		if err := json.NewEncoder(w).Encode(err); err != nil {
-			log.Error("Error AddExercise unmarshalling data", err)
+			c.log.Error("Error AddExercise unmarshalling data", err)
 			w.WriteHeader(http.StatusInternalServerError)
 			return
 		}
@@ -79,20 +89,20 @@ func (c *Controller) AddExercise(w http.ResponseWriter, r *http.Request) {
 // UpdateExercise PUT /
 func (c *Controller) UpdateExercise(w http.ResponseWriter, r *http.Request) {
 	var exercise model.Exercise
-	body, err := ioutil.ReadAll(io.LimitReader(r.Body, 1048576)) // read the body of the request
+	body, err := ioutil.ReadAll(r.Body)
 	if err != nil {
-		log.Error("Error UpdateExercise", err)
+		c.log.Error("Error UpdateExercise", err)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 	if err := r.Body.Close(); err != nil {
-		log.Error("Error UpdateExercise", err)
+		c.log.Error("Error UpdateExercise", err)
 	}
 	if err := json.Unmarshal(body, &exercise); err != nil { // unmarshal body contents as a type Candidate
 		w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 		w.WriteHeader(422) // unprocessable entity
 		if err := json.NewEncoder(w).Encode(err); err != nil {
-			log.Error("Error UpdateExercise unmarshalling data", err)
+			c.log.Error("Error UpdateExercise unmarshalling data", err)
 			w.WriteHeader(http.StatusInternalServerError)
 			return
 		}

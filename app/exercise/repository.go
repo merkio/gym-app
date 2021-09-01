@@ -1,10 +1,7 @@
 package exercise
 
 import (
-	config "gym-app/app-config"
 	"gym-app/app/model"
-	"gym-app/common/db"
-	loggerWrap "gym-app/common/logger"
 	repo "gym-app/repository"
 
 	"github.com/sirupsen/logrus"
@@ -19,54 +16,40 @@ type Repository interface {
 	Get() []model.Exercise
 }
 
-// ERepository instance of Repository
+// ERepository instance of PRepository
 type ERepository struct {
 	Repository
+	db  *gorm.DB
+	log *logrus.Logger
 }
 
-// GetDB get connect to the db
-func GetDB(conf config.DataConnectionConf, app string) *gorm.DB {
-	dbConn := db.GetDBInstance(&db.Specification{
-		Port:       conf.PostgresPort,
-		Hostname:   conf.PostgresHostname,
-		User:       conf.PostgresUser,
-		Password:   conf.PostgresPassword,
-		DbName:     conf.PostgresDBName,
-		SSLMode:    conf.PostgresSSLMode,
-		SearchPath: conf.PostgresSchema,
-	})
-
-	return dbConn
-}
-
-var dbConn *gorm.DB
-var log *logrus.Logger
-
-func init() {
-	dbConn = GetDB(config.DataConnectionConfig, config.App)
-	log = loggerWrap.NewLogger()
+func NewERepository(conn *gorm.DB, logger *logrus.Logger) ERepository {
+	return ERepository{
+		db:  conn,
+		log: logger,
+	}
 }
 
 // Get returns the list of Exercises
 func (r ERepository) Get() []model.Exercise {
 	exercises := make([]model.Exercise, 30)
-	result := dbConn.Find(&exercises)
+	result := r.db.Find(&exercises)
 
 	if result.Error != nil {
-		log.Error("Can't get exercises from dbConn.\n", result.Error)
+		r.log.Error("Can't get exercises from dbConn.\n", result.Error)
 	}
 
-	log.Infof("Found %d amount of exercises", result.RowsAffected)
+	r.log.Infof("Found %d amount of exercises", result.RowsAffected)
 	return exercises
 }
 
 // GetByID return the Exercise with id
 func (r ERepository) GetByID(id string) (model.Exercise, error) {
 	exercise := model.Exercise{}
-	result := dbConn.First(&exercise, "id = ?", id)
+	result := r.db.First(&exercise, "id = ?", id)
 
 	if result.Error != nil {
-		log.Errorf("Can't create exercise %v\n%v", exercise, result.Error)
+		r.log.Errorf("Can't create exercise %v\n%v", exercise, result.Error)
 		return model.Exercise{}, result.Error
 	}
 
@@ -75,10 +58,10 @@ func (r ERepository) GetByID(id string) (model.Exercise, error) {
 
 // Create inserts an Exercise into DB
 func (r ERepository) Create(exercise model.Exercise) (string, error) {
-	result := dbConn.Create(&exercise)
+	result := r.db.Create(&exercise)
 
 	if result.Error != nil {
-		log.Errorf("Can't create exercise %v\n%v", exercise, result.Error)
+		r.log.Errorf("Can't create exercise %v\n%v", exercise, result.Error)
 		return "", result.Error
 	}
 
@@ -87,10 +70,10 @@ func (r ERepository) Create(exercise model.Exercise) (string, error) {
 
 // CreateAll inserts an Exercises into DB
 func (r ERepository) CreateAll(exercises []model.Exercise) bool {
-	result := dbConn.Create(&exercises)
+	result := r.db.Create(&exercises)
 
 	if result.Error != nil {
-		log.Errorf("Can't create exercise %v\n%v", exercises, result.Error)
+		r.log.Errorf("Can't create exercise %v\n%v", exercises, result.Error)
 		return false
 	}
 
@@ -99,10 +82,10 @@ func (r ERepository) CreateAll(exercises []model.Exercise) bool {
 
 // Update updates an Exercise in the DB (not used for now)
 func (r ERepository) Update(exercise model.Exercise) error {
-	result := dbConn.Model(&exercise).Updates(exercise)
+	result := r.db.Model(&exercise).Updates(exercise)
 
 	if result.Error != nil {
-		log.Errorf("Can't update exercise with values %v\n%v", exercise, result.Error)
+		r.log.Errorf("Can't update exercise with values %v\n%v", exercise, result.Error)
 		return result.Error
 	}
 	return nil
@@ -110,10 +93,10 @@ func (r ERepository) Update(exercise model.Exercise) error {
 
 // DeleteByID deletes an Exercise (not used for now)
 func (r ERepository) DeleteByID(id string) error {
-	result := dbConn.Delete(&model.Exercise{}, id)
+	result := r.db.Delete(&model.Exercise{}, id)
 
 	if result.Error != nil {
-		log.Errorf("Can't delete exercise with id %s\n%v", id, result.Error)
+		r.log.Errorf("Can't delete exercise with id %s\n%v", id, result.Error)
 		return result.Error
 	}
 

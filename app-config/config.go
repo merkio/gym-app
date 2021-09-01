@@ -59,7 +59,3 @@ func LoadConfig() {
 	HealthConfig = cHealth
 	VkConnectionConfig = cVk
 }
-
-func init() {
-	LoadConfig()
-}

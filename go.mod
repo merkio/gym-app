@@ -7,6 +7,7 @@ require (
 	github.com/go-vk-api/vk v0.0.0-20200129183856-014d9b8adc96
 	github.com/gorilla/handlers v1.5.1
 	github.com/gorilla/mux v1.8.0
+	github.com/joho/godotenv v1.3.0
 	github.com/kelseyhightower/envconfig v1.4.0
 	github.com/lib/pq v1.8.0 // indirect
 	github.com/onsi/ginkgo v1.13.0

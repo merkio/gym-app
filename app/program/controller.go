@@ -5,7 +5,6 @@ import (
 	config "gym-app/app-config"
 	"gym-app/app/model"
 	"gym-app/common/db"
-	"io"
 	"io/ioutil"
 	"net/http"
 
@@ -61,7 +60,7 @@ func (c *Controller) GetProgram(w http.ResponseWriter, r *http.Request) {
 // AddProgram POST /
 func (c *Controller) AddProgram(w http.ResponseWriter, r *http.Request) {
 	var program model.Program
-	body, err := ioutil.ReadAll(io.LimitReader(r.Body, 1048576)) // read the body of the request
+	body, err := ioutil.ReadAll(r.Body)
 	if err != nil {
 		c.log.Error("Error AddProgram", err)
 		w.WriteHeader(http.StatusInternalServerError)
@@ -92,7 +91,7 @@ func (c *Controller) AddProgram(w http.ResponseWriter, r *http.Request) {
 // UpdateProgram PUT /
 func (c *Controller) UpdateProgram(w http.ResponseWriter, r *http.Request) {
 	var program model.Program
-	body, err := ioutil.ReadAll(io.LimitReader(r.Body, 1048576)) // read the body of the request
+	body, err := ioutil.ReadAll(r.Body)
 	if err != nil {
 		c.log.Error("Error UpdateProgram", err)
 		w.WriteHeader(http.StatusInternalServerError)
@@ -137,7 +136,7 @@ func (c *Controller) DeleteProgram(w http.ResponseWriter, r *http.Request) {
 // Search POST /search
 func (c *Controller) Search(w http.ResponseWriter, r *http.Request) {
 	var params model.SearchRequest
-	body, err := ioutil.ReadAll(io.LimitReader(r.Body, 1048576)) // read the body of the request
+	body, err := ioutil.ReadAll(r.Body)
 	if err != nil {
 		c.log.Error("Error Search programs", err)
 		w.WriteHeader(http.StatusInternalServerError)

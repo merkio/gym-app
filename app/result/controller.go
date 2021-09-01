@@ -2,7 +2,10 @@ package result
 
 import (
 	"encoding/json"
-	"io"
+	"github.com/sirupsen/logrus"
+	config "gym-app/app-config"
+	"gym-app/app/model"
+	"gym-app/common/db"
 	"io/ioutil"
 	"net/http"
 
@@ -12,12 +15,19 @@ import (
 //Controller ...
 type Controller struct {
 	repository RRepository
+	log        *logrus.Logger
 }
 
+func NewController(logger *logrus.Logger) Controller {
+	return Controller{
+		log:        logger,
+		repository: NewRRepository(db.GetDB(config.DataConnectionConfig), logger),
+	}
+}
 // Index GET /
 func (c *Controller) Index(w http.ResponseWriter, r *http.Request) {
 	results := c.repository.Get() // list of all results
-	log.Info("Found results: ", len(results))
+	c.log.Info("Found results: ", len(results))
 	data, _ := json.Marshal(results)
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 	w.Header().Set("Access-Control-Allow-Origin", "*")
@@ -29,7 +39,7 @@ func (c *Controller) Index(w http.ResponseWriter, r *http.Request) {
 func (c *Controller) GetResult(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	id := vars["id"]
-	var result Result
+	var result model.Result
 	var err error
 
 	if result, err = c.repository.GetByID(id); err != nil {
@@ -37,7 +47,7 @@ func (c *Controller) GetResult(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	log.Info("Found result: ", result)
+	c.log.Info("Found result: ", result)
 	data, _ := json.Marshal(result)
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 	w.Header().Set("Access-Control-Allow-Origin", "*")
@@ -47,20 +57,20 @@ func (c *Controller) GetResult(w http.ResponseWriter, r *http.Request) {
 
 // AddResult POST /
 func (c *Controller) AddResult(w http.ResponseWriter, r *http.Request) {
-	var result Result
-	body, err := ioutil.ReadAll(io.LimitReader(r.Body, 1048576)) // read the body of the request
+	var result model.Result
+	body, err := ioutil.ReadAll(r.Body)
 	if err != nil {
-		log.Error("Error AddResult", err)
+		c.log.Error("Error AddResult", err)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 	if err := r.Body.Close(); err != nil {
-		log.Error("Error AddResult", err)
+		c.log.Error("Error AddResult", err)
 	}
 	if err := json.Unmarshal(body, &result); err != nil { // unmarshal body contents as a type Candidate
 		w.WriteHeader(422) // unprocessable entity
 		if err := json.NewEncoder(w).Encode(err); err != nil {
-			log.Error("Error AddResult unmarshalling data", err)
+			c.log.Error("Error AddResult unmarshalling data", err)
 			w.WriteHeader(http.StatusInternalServerError)
 			return
 		}
@@ -77,21 +87,21 @@ func (c *Controller) AddResult(w http.ResponseWriter, r *http.Request) {
 
 // UpdateResult PUT /
 func (c *Controller) UpdateResult(w http.ResponseWriter, r *http.Request) {
-	var result Result
-	body, err := ioutil.ReadAll(io.LimitReader(r.Body, 1048576)) // read the body of the request
+	var result model.Result
+	body, err := ioutil.ReadAll(r.Body)
 	if err != nil {
-		log.Error("Error UpdateResult", err)
+		c.log.Error("Error UpdateResult", err)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 	if err := r.Body.Close(); err != nil {
-		log.Error("Error UpdateResult", err)
+		c.log.Error("Error UpdateResult", err)
 	}
 	if err := json.Unmarshal(body, &result); err != nil { // unmarshal body contents as a type Candidate
 		w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 		w.WriteHeader(422) // unprocessable entity
 		if err := json.NewEncoder(w).Encode(err); err != nil {
-			log.Error("Error UpdateResult unmarshalling data", err)
+			c.log.Error("Error UpdateResult unmarshalling data", err)
 			w.WriteHeader(http.StatusInternalServerError)
 			return
 		}

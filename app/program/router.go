@@ -8,8 +8,6 @@ import (
 	"github.com/gorilla/mux"
 )
 
-var controller = NewController(logger.NewLogger())
-
 // Route defines a route
 type Route struct {
 	Name        string
@@ -21,50 +19,53 @@ type Route struct {
 //Routes defines the list of routes of our API
 type Routes []Route
 
-var routes = Routes{
-	Route{
-		"Index",
-		"GET",
-		"",
-		controller.Index,
-	},
-	Route{
-		"Index",
-		"GET",
-		"/{id}",
-		controller.GetProgram,
-	},
-	Route{
-		"AddProgram",
-		"POST",
-		"",
-		controller.AddProgram,
-	},
-	Route{
-		"SearchPrograms",
-		"POST",
-		"/search",
-		controller.Search,
-	},
-	Route{
-		"UpdateProgram",
-		"PUT",
-		"",
-		controller.UpdateProgram,
-	},
-	Route{
-		"DeleteProgram",
-		"DELETE",
-		"/{id}",
-		controller.DeleteProgram,
-	},
+func routes(c *Controller) []Route {
+	return Routes{
+		Route{
+			"Index",
+			"GET",
+			"",
+			c.Index,
+		},
+		Route{
+			"Index",
+			"GET",
+			"/{id}",
+			c.GetProgram,
+		},
+		Route{
+			"AddProgram",
+			"POST",
+			"",
+			c.AddProgram,
+		},
+		Route{
+			"SearchPrograms",
+			"POST",
+			"/search",
+			c.Search,
+		},
+		Route{
+			"UpdateProgram",
+			"PUT",
+			"",
+			c.UpdateProgram,
+		},
+		Route{
+			"DeleteProgram",
+			"DELETE",
+			"/{id}",
+			c.DeleteProgram,
+		},
+	}
 }
 
 //NewSubRouter configures a new router to the API
 func NewSubRouter(r *mux.Router) *mux.Router {
 	router := r.PathPrefix("/api/program").Subrouter()
+	var controller = NewController(logger.NewLogger())
 
-	for _, route := range routes {
+	for _, route := range routes(&controller) {
 		var handler http.Handler
 		handler = route.HandlerFunc
 		handler = logger.RequestLogger(handler, route.Name)

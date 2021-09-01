@@ -1,9 +1,7 @@
 package result
 
 import (
-	config "gym-app/app-config"
-	"gym-app/common/db"
-	loggerWrap "gym-app/common/logger"
+	"gym-app/app/model"
 	repo "gym-app/repository"
 
 	"github.com/sirupsen/logrus"
@@ -13,71 +11,57 @@ import (
 // Repository results repository
 type Repository interface {
 	repo.BaseRepository
-	CreateAll(results []Result) bool
-	GetByID(id string) (Result, error)
-	Get() []Result
+	CreateAll(results []model.Result) bool
+	GetByID(id string) (model.Result, error)
+	Get() []model.Result
 }
 
-// RRepository instance of RRepository
+// RRepository instance of PRepository
 type RRepository struct {
 	Repository
+	db  *gorm.DB
+	log *logrus.Logger
 }
 
-// GetDB connection to the db
-func GetDB(conf config.DataConnectionConf, app string) *gorm.DB {
-	dbConn := db.GetDBInstance(&db.Specification{
-		Port:       conf.PostgresPort,
-		Hostname:   conf.PostgresHostname,
-		User:       conf.PostgresUser,
-		Password:   conf.PostgresPassword,
-		DbName:     conf.PostgresDBName,
-		SSLMode:    conf.PostgresSSLMode,
-		SearchPath: conf.PostgresSchema,
-	})
-
-	return dbConn
-}
-
-var dbConn *gorm.DB
-var log *logrus.Logger
-
-func init() {
-	dbConn = GetDB(config.DataConnectionConfig, config.App)
-	log = loggerWrap.NewLogger()
+func NewRRepository(conn *gorm.DB, logger *logrus.Logger) RRepository {
+	return RRepository{
+		db:  conn,
+		log: logger,
+	}
 }
 
 // Get returns the list of Results
-func (r RRepository) Get() []Result {
-	results := make([]Result, 30)
-	result := dbConn.Find(&results)
+func (r RRepository) Get() []model.Result {
+	results := make([]model.Result, 30)
+	result := r.db.Find(&results)
 
 	if result.Error != nil {
-		log.Error("Can't get results from dbConn.\n", result.Error)
+		r.log.Error("Can't get results from DB\n", result.Error)
 	}
 
-	log.Infof("Found %d amount of results", result.RowsAffected)
+	r.log.Infof("Found %d amount of results", result.RowsAffected)
 	return results
 }
 
 // GetByID return the Result with id
-func (r RRepository) GetByID(id string) (Result, error) {
-	result := Result{}
-	res := dbConn.First(&result, "id = ?", id)
+func (r RRepository) GetByID(id string) (model.Result, error) {
+	result := model.Result{}
+	res := r.db.First(&result, "id = ?", id)
 
 	if res.Error != nil {
-		log.Errorf("Can't create result %v\n%v", res, res.Error)
-		return Result{}, res.Error
+		r.log.Errorf("Can't create result %v\n%v", res, res.Error)
+		return model.Result{}, res.Error
 	}
 
 	return result, nil
 }
 
 // Create inserts an Result into DB
-func (r RRepository) Create(result Result) (string, error) {
-	res := dbConn.Create(&result)
+func (r RRepository) Create(result model.Result) (string, error) {
+	res := r.db.Create(&result)
 
 	if res.Error != nil {
-		log.Errorf("Can't create result %v\n%v", result, res.Error)
+		r.log.Errorf("Can't create result %v\n%v", result, res.Error)
 		return "", res.Error
 	}
 
@@ -85,11 +69,11 @@ func (r RRepository) Create(result Result) (string, error) {
 }
 
 // CreateAll inserts an Results into DB
-func (r RRepository) CreateAll(results []Result) bool {
-	result := dbConn.Create(&results)
+func (r RRepository) CreateAll(results []model.Result) bool {
+	result := r.db.Create(&results)
 
 	if result.Error != nil {
-		log.Errorf("Can't create result %v\n%v", results, result.Error)
+		r.log.Errorf("Can't create result %v\n%v", results, result.Error)
 		return false
 	}
 
@@ -97,11 +81,11 @@ func (r RRepository) CreateAll(results []Result) bool {
 }
 
 // Update updates an Result in the DB (not used for now)
-func (r RRepository) Update(result Result) error {
-	res := dbConn.Model(&result).Updates(result)
+func (r RRepository) Update(result model.Result) error {
+	res := r.db.Model(&result).Updates(result)
 
 	if res.Error != nil {
-		log.WithField("err", res.Error).
+		r.log.WithField("err", res.Error).
 			WithField("values", result).
 			Error("Can't update result with values")
 		return res.Error
@@ -111,10 +95,10 @@ func (r RRepository) Update(result Result) error {
 
 // DeleteByID deletes an Result (not used for now)
 func (r RRepository) DeleteByID(id string) error {
-	result := dbConn.Delete(&Result{}, id)
+	result := r.db.Delete(&model.Result{}, id)
 
 	if result.Error != nil {
-		log.WithField("err", result.Error).
+		r.log.WithField("err", result.Error).
 			WithField("id", id).
 			Error("Can't delete result with id")
 		return result.Error

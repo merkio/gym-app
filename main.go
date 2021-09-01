@@ -1,20 +1,24 @@
 package main
 
 import (
+	"github.com/gorilla/handlers"
+	"github.com/gorilla/mux"
+	"github.com/joho/godotenv"
 	config "gym-app/app-config"
 	"gym-app/app/exercise"
 	"gym-app/app/model"
 	"gym-app/app/program"
 	"gym-app/app/result"
 	"gym-app/app/tasks"
+	"gym-app/common/db"
 	"log"
 	"net/http"
-
-	"github.com/gorilla/handlers"
-	"github.com/gorilla/mux"
 )
 
 func main() {
+	_ = godotenv.Load()
+	config.LoadConfig()
+
 	router := mux.NewRouter().StrictSlash(true) // create routes
 	exercise.NewSubRouter(router)
 	program.NewSubRouter(router)
@@ -22,9 +26,9 @@ func main() {
 
 	router.PathPrefix("/.well-known/acme-challenge/").Handler(http.FileServer(http.Dir("./certbot/")))
 
-	db := exercise.GetDB(config.DataConnectionConfig, config.App)
+	conn := db.GetDB(config.DataConnectionConfig)
 
-	err := db.AutoMigrate(result.Result{}, model.Exercise{}, model.Program{})
+	err := conn.AutoMigrate(model.Result{}, model.Exercise{}, model.Program{})
 	if err != nil {
 		log.Fatal(err)
 	}
