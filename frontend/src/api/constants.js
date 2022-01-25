@@ -1,1 +1,0 @@
-export const BASE_API_URL = 'http://gym-app.home.net/api'
