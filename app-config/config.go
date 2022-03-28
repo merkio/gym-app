@@ -2,6 +2,7 @@ package config
 
 import (
 	loadConfig "gym-app/common/config"
+	"strings"
 )
 
 const (
@@ -20,9 +21,19 @@ type VkConnectionConf struct {
 	ClientID    string `default:"" envconfig:"VK_CLIENT_ID"`
 	SecretKey   string `default:"" envconfig:"VK_SECRET_KEY"`
 	AccessToken string `default:"" envconfig:"VK_ACCESS_TOKEN"`
-	GroupID     string `default:"" envconfig:"VK_GROUP_ID"`
+	Groups      string `default:"" envconfig:"VK_GROUPS"`
 	Hour        int    `default:"7" envconfig:"VK_TASK_HOUR"`
 	Minute      int    `default:"0" envconfig:"VK_TASK_MINUTE"`
+}
+
+func (c VkConnectionConf) GetGroups() map[string]string {
+	var groups = make(map[string]string)
+
+	for _, group := range strings.Split(c.Groups, ",") {
+		arr := strings.Split(group, ":")
+		groups[strings.TrimSpace(arr[0])] = strings.TrimSpace(arr[1])
+	}
+	return groups
 }
 
 type DataConnectionConf struct {

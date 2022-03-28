@@ -14,6 +14,8 @@ type Program struct {
 	Tags      string     `gorm:"index" json:"tags"`
 	Date      time.Time  `json:"date"`
 	DateInt   int64      `json:"dateInt"`
+	GroupName string     `gorm:"default:UDARNIK" json:"group_name"`
+	GroupID   string     `gorm:"default:-62011928" json:"group_id"`
 	Exercises []Exercise `gorm:"many2many:program_exercises;" json:"exercises"`
 }
 

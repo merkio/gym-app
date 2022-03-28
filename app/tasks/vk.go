@@ -33,10 +33,16 @@ func CollectVkMessages() {
 	s.Every().
 		Hour(config.VkConnectionConfig.Hour).
 		Minute(config.VkConnectionConfig.Minute).
-		Do(vkCollectorTask, "", 10, 0)
+		Do(vkCollectorTaskForGroups, 10, 0)
 }
 
-func vkCollectorTask(query string, count, offset int) {
+func vkCollectorTaskForGroups(count, offset int) {
+	for k, v := range config.VkConnectionConfig.GetGroups() {
+		vkCollectorTask(k, v, count, offset)
+	}
+}
+
+func vkCollectorTask(group_name, group_id string, count, offset int) {
 	log.Info("Collecting data from vk")
 	client := newClient()
 	response := WallResponseData{}
@@ -46,10 +52,9 @@ func vkCollectorTask(query string, count, offset int) {
 		time.Sleep(20 * time.Second)
 		log.Infof("Request with count %v and offset %v", count, i)
 		if err := client.CallMethod("wall.get", vk.RequestParams{
-			//"query":   query,
 			"count":    count,
 			"offset":   i,
-			"owner_id": config.VkConnectionConfig.GroupID,
+			"owner_id": group_id,
 		}, &response); err != nil {
 			log.Error("Request to the vk api failed", err)
 		}
