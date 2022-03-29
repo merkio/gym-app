@@ -52,7 +52,7 @@ func (r PRepository) GetByText(text string) bool {
 	result := r.db.Where("text = ?", text).First(&program)
 
 	if result.Error != nil {
-		r.log.Errorf("Can't find the program with text %s\n%v", text, result.Error)
+		r.log.Errorf("Can't find the program with text %s\n%v", text[:30], result.Error)
 		return false
 	}
 

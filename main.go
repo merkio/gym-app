@@ -1,9 +1,6 @@
 package main
 
 import (
-	"github.com/gorilla/handlers"
-	"github.com/gorilla/mux"
-	"github.com/joho/godotenv"
 	config "gym-app/app-config"
 	"gym-app/app/exercise"
 	"gym-app/app/model"
@@ -13,6 +10,10 @@ import (
 	"gym-app/common/db"
 	"log"
 	"net/http"
+
+	"github.com/gorilla/handlers"
+	"github.com/gorilla/mux"
+	"github.com/joho/godotenv"
 )
 
 func main() {
@@ -24,7 +25,7 @@ func main() {
 	program.NewSubRouter(router)
 	result.NewSubRouter(router)
 
-	router.PathPrefix("/.well-known/acme-challenge/").Handler(http.FileServer(http.Dir("./certbot/")))
+	// router.PathPrefix("/.well-known/acme-challenge/").Handler(http.FileServer(http.Dir("./certbot/")))
 
 	conn := db.GetDB(config.DataConnectionConfig)
 

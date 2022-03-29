@@ -29,7 +29,6 @@ func CollectVkMessages() {
 	if err != nil {
 		log.Error(err) // just example
 	}
-
 	s.Every().
 		Hour(config.VkConnectionConfig.Hour).
 		Minute(config.VkConnectionConfig.Minute).
@@ -47,10 +46,10 @@ func vkCollectorTask(group_name, group_id string, count, offset int) {
 	client := newClient()
 	response := WallResponseData{}
 	countErrors := 0
-	i := 0
+	i := offset
 	for {
 		time.Sleep(20 * time.Second)
-		log.Infof("Request with count %v and offset %v", count, i)
+		log.Infof("Request with count %v and offset %v and group %v", count, i, group_name)
 		if err := client.CallMethod("wall.get", vk.RequestParams{
 			"count":    count,
 			"offset":   i,
@@ -69,10 +68,12 @@ func vkCollectorTask(group_name, group_id string, count, offset int) {
 				continue
 			}
 			str, err := programRepo.Create(model.Program{
-				Text:    post.Text,
-				DateInt: post.Date,
-				Tags:    "raw,post",
-				Date:    time.Unix(post.Date, 0),
+				Text:      post.Text,
+				DateInt:   post.Date,
+				Tags:      "raw,post",
+				GroupName: group_name,
+				GroupID:   group_id,
+				Date:      time.Unix(post.Date, 0),
 			})
 			if err != nil {
 				log.Error("Error during save the program", err)
@@ -80,7 +81,7 @@ func vkCollectorTask(group_name, group_id string, count, offset int) {
 			log.Infof("Saved new program with ID %s and StartDate %s", str, time.Unix(post.Date, 0).String())
 		}
 		i = i + count
-		if countErrors > 100 {
+		if countErrors > 30 {
 			return
 		}
 	}
