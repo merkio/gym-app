@@ -52,11 +52,18 @@ func (r PRepository) GetByText(text string) bool {
 	result := r.db.Where("text = ?", text).First(&program)
 
 	if result.Error != nil {
-		r.log.Errorf("Can't find the program with text %s\n%v", text[:30], result.Error)
+		r.log.Errorf("Can't find the program with text %.30s\n%v", text, result.Error)
 		return false
 	}
 
 	return true
+}
+
+// CountByGroupID count messages by group ID
+func (r PRepository) CountByGroupID(groupID string) int64 {
+	var result int64
+	r.db.Table(model.Program{}).Where("group_id = ?", groupID).Count(&result)
+	return result
 }
 
 // GetByID return the Program with id

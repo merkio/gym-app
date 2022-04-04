@@ -46,6 +46,7 @@ func vkCollectorTask(group_name, group_id string, count, offset int) {
 	client := newClient()
 	response := WallResponseData{}
 	countErrors := 0
+	lastMessages := false
 	i := offset
 	for {
 		time.Sleep(20 * time.Second)
@@ -81,7 +82,12 @@ func vkCollectorTask(group_name, group_id string, count, offset int) {
 			log.Infof("Saved new program with ID %s and StartDate %s", str, time.Unix(post.Date, 0).String())
 		}
 		i = i + count
-		if countErrors > 30 {
+		if countErrors > 30 && !lastMessages {
+			countErrors = 0
+			lastMessages = true
+			i = int(programRepo.CountByGroupID(group_id))
+		}
+		if countErrors > 30 && lastMessages {
 			return
 		}
 	}
