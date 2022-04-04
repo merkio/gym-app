@@ -62,7 +62,7 @@ func (r PRepository) GetByText(text string) bool {
 // CountByGroupID count messages by group ID
 func (r PRepository) CountByGroupID(groupID string) int64 {
 	var result int64
-	r.db.Table(model.Program{}).Where("group_id = ?", groupID).Count(&result)
+	r.db.Table("programs").Where("group_id = ?", groupID).Count(&result)
 	return result
 }
 
