@@ -27,4 +27,5 @@ type SearchRequest struct {
 	SortBy    string `json:"sort_by"`
 	Order     string `json:"order"`
 	Text      string `json:"text"`
+  GroupName string `json:"text"`
 }

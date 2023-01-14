@@ -12,6 +12,11 @@ func CreateSearchProgramQuery(params *model.SearchRequest, tx *gorm.DB) *gorm.DB
 		params.SortBy = "date"
 		params.Order = "asc"
 	}
+  if params.GroupName != "" {
+    tx.Where("group_name = ?", params.GroupName)
+  } else {
+    tx.Where("group_name = ?", "UDARNIK")
+  }
 	tx.Order(fmt.Sprintf("%s %s", params.SortBy, params.Order))
 	if params.StartDate != "" {
 		startDate := StartOfTheDay(ParseDate(params.StartDate))
