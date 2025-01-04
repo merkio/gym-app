@@ -79,6 +79,20 @@ func vkCollectorTask(group_name, group_id string, count, offset int) {
 			if err != nil {
 				log.Error("Error during save the program", err)
 			}
+			// for _, attachment := post.Attachments {
+			// 	response :=
+			// 	if attachment.Type == "video" {
+			// 		if err := client.CallMethod("video.get", vk.RequestParams{
+			// 			"videos": attachment.video.OwnerID + "_" + attachment.video.ID,
+			// 		}, &response); err != nil {
+			// 			log.Error("Request to the vk api failed", err)
+			// 		}
+
+			// 		resp, err := http.post(config.AppConfig.MetubeUrl + "/add", MetubeRequest{
+
+			// 		})
+			// 	}
+			// }
 			log.Infof("Saved new program with ID %s and StartDate %s", str, time.Unix(post.Date, 0).String())
 		}
 		i = i + count
@@ -92,3 +106,20 @@ func vkCollectorTask(group_name, group_id string, count, offset int) {
 		}
 	}
 }
+
+// type MetubeRequest struct {
+// 	Url string `json:"url"`
+// 	Quality string `json:"quality"`
+// 	Format string `json:"format"`
+// 	Folder string `json:"folder"`
+// 	-H 'Accept: application/json, text/plain, */*' \
+//   -H 'Accept-Language: en-US,en' \
+//   -H 'Connection: keep-alive' \
+//   -H 'Content-Type: application/json' \
+//   -H 'Cookie: metube_format=mp4' \
+//   -H 'Origin: http://192.168.1.8:8081' \
+//   -H 'Referer: http://192.168.1.8:8081/' \
+//   -H 'Sec-GPC: 1' \
+//   -H 'User-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/112.0.0.0 Safari/537.36' \
+//   --data-raw '{"url":"https://vk.com/video_ext.php?","quality":"best","format":"mp4","folder":"gym"}' \
+// }

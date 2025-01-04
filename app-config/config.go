@@ -48,6 +48,7 @@ type DataConnectionConf struct {
 
 type AppConf struct {
 	AppVersion string `default:"v0.0.3" envconfig:"APP_VERSION"`
+	MetubeUrl  string `default:"http://192.168.1.8:8081" envconfig:"METUBE_URL"`
 }
 
 type HealthConf struct {
