@@ -14,11 +14,11 @@
 # Dependency directories (remove the comment below to include it)
 # vendor/
 
-# IDEA 
+# IDEA
 *.iml
 .idea
 
-# VS Code 
+# VS Code
 .vscode
 .history
 
@@ -47,3 +47,6 @@ pnpm-debug.log*
 
 # Vue
 **/node_modules
+
+# Testing and extending functionality
+**/response.json
